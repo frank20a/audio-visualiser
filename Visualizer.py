@@ -8,18 +8,21 @@ blue = (0, 0, 255)
 green = (0, 255, 0)
 red = (255, 0, 0)
 black = (0, 0, 0)
+
 b = []
-topDelay = 4
-sens = 0.04
+fpsLimiter = 3                   # Dictates that the screen is refreshed 3 times slower
+topDelay = fpsLimiter * 2        # Good idea to make it a multiple of fpsLimiter
+sens = 0.04                      # Limits the amplitude of the spectrum
 counter = 0
-fpsLimiter = 2
 
 class Window:
     def __init__(self):
         self._running = True
         self._display_surf = None
-        self.size = self.weight, self.height = 800, 600
-        self.tops = [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], ]
+        self.size = self.weight, self.height = 620, 600
+        self.tops = [[0, 0, green], [0, 0, green], [0, 0, green], [0, 0, green], [0, 0, green], [0, 0, green],
+                     [0, 0, green], [0, 0, green], [0, 0, green], [0, 0, green], [0, 0, green], [0, 0, green],
+                     [0, 0, green], [0, 0, green]]
 
     def on_init(self):
         pygame.init()
@@ -44,19 +47,19 @@ class Window:
             if i > self.tops[n][0]:
                 self.tops[n][0] = min(int(i), 13)
                 self.tops[n][1] = 0
+                if i > 11: self.tops[n][2] = red
+                elif i > 7: self.tops[n][2] = yellow
+                else: self.tops[n][2] = green
             if self.tops[n][1] % topDelay == 0: self.tops[n][0] -= 1
 
             for j in range(min(int(i)+1, 14)):
-                if j > 11:
-                    col = red
-                elif j > 7:
-                    col = yellow
-                else:
-                    col = green
+                if j > 11: col = red
+                elif j > 7: col = yellow
+                else: col = green
 
                 pygame.draw.rect(self._display_surf, col, pygame.Rect(100 + n * 30, 500 - j * 30, 25, 25))
 
-            if self.tops[n][0] > 0: pygame.draw.rect(self._display_surf, red, pygame.Rect(100 + n * 30, 500 - (1+self.tops[n][0]) * 30, 25, 25))
+            if self.tops[n][0] >= 0: pygame.draw.rect(self._display_surf, self.tops[n][2], pygame.Rect(100 + n * 30, 500 - (1+self.tops[n][0]) * 30, 25, 25))
             self.tops[n][1] += 1
 
     def on_cleanup(self):
