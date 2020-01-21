@@ -2,7 +2,7 @@ import numpy as np
 import AudioInput
 import matplotlib.pyplot as plt
 
-A = AudioInput.AudioInput(2048, 48000, 1024, 1)
+A = AudioInput.AudioInput ()
 
 if __name__ == '__main__':
     # Plotting work
@@ -11,7 +11,7 @@ if __name__ == '__main__':
 
     ax1.set_ylim(-1, 1)
     ax1.set_title("Input")
-    ax2.set_ylim(0, 1/A.res)
+    ax2.set_ylim(0, 0.1)
     ax2.set_xlim(20, A.Fs / (2*A.res))
     ax2.set_title("Spectrum")
 
@@ -33,3 +33,7 @@ if __name__ == '__main__':
 
         fig.canvas.draw()
         fig.canvas.flush_events()
+
+    stream.stop_stream()
+    stream.close()
+    p.terminate()
