@@ -1,4 +1,4 @@
-from math import cos, sqrt, pi
+from math import cos, pi, floor
 import pyaudio
 import numpy as np
 from scipy.fftpack import fft
@@ -14,9 +14,15 @@ class AudioInput:
         self.sig = np.zeros(self.chunk)
         self.SIG = np.zeros(self.Nfft)
 
-        p = pyaudio.PyAudio()
-        self.stream = p.open(format=pyaudio.paInt16, channels=1, rate=self.Fs, input=True, output=False,
-                             frames_per_buffer=self.chunk, input_device_index=2)
+        self.p = pyaudio.PyAudio()
+        self.stream = self.p.open(format=pyaudio.paInt16, channels=1, rate=self.Fs, input=True, output=False,
+                                  frames_per_buffer=self.chunk, input_device_index=2)
+
+    def getSpectralBar(self, i1, i2):
+        return sum(np.abs(self.SIG[i1:i2])) / np.abs((i2 - i1))
+
+    def indexFromFreq(self, F):
+        return floor(F * self.Nfft / self.Fs)
 
     @classmethod
     def BlackmanWindow(cls, N, a0, a1, a2, a3):
@@ -48,3 +54,8 @@ class AudioInput:
         self.sig = np.array(struct.unpack(str(self.chunk) + 'h', data))[::self.res] / 32767
         self.BlackmanHarris()
         self.SIG = fft(self.sig, self.Nfft)
+
+    def close(self):
+        self.stream.stop_stream()
+        self.stream.close()
+        self.p.terminate()
