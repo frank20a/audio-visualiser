@@ -21,3 +21,7 @@ $RECYCLE.BIN/
 # =========================
 # Operating System Files
 # =========================
+.idea/workspace.xml
+.idea/AudioVisualizer.iml
+*.xml
+__pycache__/AudioInput.cpython-36.pyc
