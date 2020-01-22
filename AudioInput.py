@@ -52,7 +52,7 @@ class AudioInput:
     def getData(self):
         data = self.stream.read(self.chunk, exception_on_overflow=False)
         self.sig = np.array(struct.unpack(str(self.chunk) + 'h', data))[::self.res] / 32767
-        self.BlackmanHarris()
+        # self.BlackmanHarris()
         self.SIG = fft(self.sig, self.Nfft)
 
     def close(self):
