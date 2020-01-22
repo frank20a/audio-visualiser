@@ -9,15 +9,16 @@ yellow = (255, 255, 0)
 blue = (0, 0, 255)
 green = (0, 255, 0)
 red = (255, 0, 0)
+cyan = (64, 224, 208)
 black = (0, 0, 0)
 r = 255
 g = 75
 b = 76
 
 bar = []
-fpsLimiter = 2              # Dictates that the screen is refreshed 3 times slower
-topDelay = fpsLimiter * 0   # Good idea to make it a multiple of fpsLimiter
-sens = 0.025                # Limits the amplitude of the spectrum
+fpsLimiter = 2  # Dictates that the screen is refreshed 3 times slower
+topDelay = fpsLimiter * 0  # Good idea to make it a multiple of fpsLimiter
+sens = 0.025  # Limits the amplitude of the spectrum
 btDtct = [False, False]
 fps = 0
 
@@ -31,10 +32,10 @@ class Window:
                      [0, 0], [0, 0]]
         self.counter = 0
 
-    def changeColourBtDtct(self):
+    def beatDetectColour(self):
         global r, g, b
         btDtct[0] = btDtct[1]
-        if (bar[2] + bar[3]) / 2 > 20:
+        if (bar[2] + bar[3]) / 2 > 19:
             btDtct[1] = True
         else:
             btDtct[1] = False
@@ -46,10 +47,14 @@ class Window:
 
         return [(min(max(r, 75), 240), min(max(g, 75), 240), min(max(b, 75), 240)) for i in range(20)]
 
-    def fadeColours(self):
+    def beatDetectGradient(self):
+        t = self.beatDetectColour()
+        return self.gradient(t[0], (t[0][2], t[0][0], t[0][1]))
+
+    def crossfadeColours(self):
         global r, g, b
 
-        if self.counter % 2 == 0:
+        if self.counter % 4 == 0:
             if b <= 75 and g > 75:
                 b = 75
                 r += 5
@@ -85,6 +90,9 @@ class Window:
             ))
         return res
 
+    def gradientCrossfadeColours(self):
+        return self.gradient(self.crossfadeColours()[0], (self.crossfadeColours()[0][1], self.crossfadeColours()[0][0],self.crossfadeColours()[0][2]))
+
     def on_init(self):
         global fps
         pygame.init()
@@ -108,19 +116,23 @@ class Window:
 
         if self.counter % fpsLimiter == 0:
             pygame.display.update()
-            try: fps = 1/((time() - t)*fpsLimiter)
-            except: fps = 0
+            try:
+                fps = 1 / ((time() - t) * fpsLimiter)
+            except:
+                fps = 0
 
     def on_render(self):
         global bar, fps
         self.screen.fill(black)
         self.screen.blit(pygame.font.SysFont('Arial Bold', 30).render('FPS: %5.2f' % fps, False, red), (10, 10))
 
-        # self.changeColourBtDtct()
-        # self.fadeColours()
+        # self.beatDetectColour()
+        # self.crossfadeColours()
         # self.peakingColours()
         # self.gradient(green, red)
-        pallette = self.gradient(red, yellow)
+        # self.gradientCrossfadeColours()
+        # self.beatDetectGradient()
+        pallette = self.beatDetectGradient()
 
         for n, i in enumerate(bar):
             if topDelay > 0:
@@ -133,7 +145,9 @@ class Window:
                 pygame.draw.rect(self.screen, pallette[j], pygame.Rect(100 + n * 30, 500 - j * 15, 25, 10))
 
             if topDelay > 0 and self.tops[n][0] >= 0: pygame.draw.rect(self.screen, red,
-                        pygame.Rect(100 + n * 30, 500 - (1 + self.tops[n][0]) * 15, 25, 10))
+                                                                       pygame.Rect(100 + n * 30,
+                                                                                   500 - (1 + self.tops[n][0]) * 15, 25,
+                                                                                   10))
             self.tops[n][1] += 1
 
     def on_cleanup(self):
