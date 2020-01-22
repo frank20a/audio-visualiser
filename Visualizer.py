@@ -75,6 +75,16 @@ class Window:
                 res.append(green)
         return res
 
+    def gradient(self, c1, c2):
+        res = []
+        for i in range(20):
+            res.append((
+                c1[0] + i * (c2[0] - c1[0]) / 19,
+                c1[1] + i * (c2[1] - c1[1]) / 19,
+                c1[2] + i * (c2[2] - c1[2]) / 19
+            ))
+        return res
+
     def on_init(self):
         global fps
         pygame.init()
@@ -96,9 +106,8 @@ class Window:
         bar = getBands()
         self.counter += 1
 
-        if self.counter % fpsLimiter == 0: pygame.display.update()
-
-        if self.counter % 2 == 0:
+        if self.counter % fpsLimiter == 0:
+            pygame.display.update()
             try: fps = 1/((time() - t)*fpsLimiter)
             except: fps = 0
 
@@ -110,7 +119,8 @@ class Window:
         # self.changeColourBtDtct()
         # self.fadeColours()
         # self.peakingColours()
-        pallette = self.peakingColours()
+        # self.gradient(green, red)
+        pallette = self.gradient(red, yellow)
 
         for n, i in enumerate(bar):
             if topDelay > 0:
@@ -126,7 +136,7 @@ class Window:
                         pygame.Rect(100 + n * 30, 500 - (1 + self.tops[n][0]) * 15, 25, 10))
             self.tops[n][1] += 1
 
-    def on_cleanup():
+    def on_cleanup(self):
         pygame.quit()
 
     def on_execute(self):
