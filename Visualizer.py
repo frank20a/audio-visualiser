@@ -11,14 +11,12 @@ green = (0, 255, 0)
 red = (255, 0, 0)
 cyan = (64, 224, 208)
 black = (0, 0, 0)
-r = 255
-g = 75
-b = 76
+r = 255; g = 75; b = 76
 
 bar = []
-fpsLimiter = 2  # Dictates that the screen is refreshed 3 times slower
+fpsLimiter = 1  # Dictates that the screen is refreshed 3 times slower
 topDelay = fpsLimiter * 0  # Good idea to make it a multiple of fpsLimiter
-sens = 0.025  # Limits the amplitude of the spectrum
+sens = 0.035  # Limits the amplitude of the spectrum
 btDtct = [False, False]
 fps = 0
 
@@ -28,9 +26,14 @@ class Window:
         self._running = True
         self.screen = None
         self.size = self.weight, self.height = 620, 600
-        self.tops = [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0],
-                     [0, 0], [0, 0]]
+        self.addBand()
         self.counter = 0
+
+    def addBand(self, x=0):
+        global f
+        if x > 0: f.append(A.indexFromFreq(2000))
+        self.tops = [[0, 0] for i in range((len(f) - 1) * 2)]
+
 
     def beatDetectColour(self):
         global r, g, b
@@ -93,7 +96,7 @@ class Window:
     def gradientCrossfadeColours(self):
         return self.gradient(self.crossfadeColours()[0], (self.crossfadeColours()[0][1], self.crossfadeColours()[0][0],self.crossfadeColours()[0][2]))
 
-    def on_init(self):
+    def init(self):
         global fps
         pygame.init()
         pygame.display.set_caption("Visualizer v0.1a")
@@ -102,16 +105,18 @@ class Window:
 
         self._running = True
 
-    def on_event(self, event):
+    def event(self, event):
         if event.type == pygame.QUIT:
             self._running = False
 
-    def on_loop(self):
+    def loop(self):
         global fps, bar, fpsLimiter, r, g, b, btDtct
 
         t = time()
         A.getData()
         bar = getBands()
+        self.N = len(bar)
+        
         self.counter += 1
 
         if self.counter % fpsLimiter == 0:
@@ -121,7 +126,7 @@ class Window:
             except:
                 fps = 0
 
-    def on_render(self):
+    def render(self):
         global bar, fps
         self.screen.fill(black)
         self.screen.blit(pygame.font.SysFont('Arial Bold', 30).render('FPS: %5.2f' % fps, False, red), (10, 10))
@@ -132,7 +137,7 @@ class Window:
         # self.gradient(green, red)
         # self.gradientCrossfadeColours()
         # self.beatDetectGradient()
-        pallette = self.beatDetectGradient()
+        palette = self.gradientCrossfadeColours()
 
         for n, i in enumerate(bar):
             if topDelay > 0:
@@ -142,7 +147,7 @@ class Window:
                 if self.tops[n][1] % topDelay == 0: self.tops[n][0] -= 1
 
             for j in range(min(int(i) + 1, 20)):
-                pygame.draw.rect(self.screen, pallette[j], pygame.Rect(100 + n * 30, 500 - j * 15, 25, 10))
+                pygame.draw.rect(self.screen, palette[j], pygame.Rect(100 + n * 30, 500 - j * 15, 25, 10))
 
             if topDelay > 0 and self.tops[n][0] >= 0: pygame.draw.rect(self.screen, red,
                                                                        pygame.Rect(100 + n * 30,
@@ -150,30 +155,30 @@ class Window:
                                                                                    10))
             self.tops[n][1] += 1
 
-    def on_cleanup(self):
+    def cleanup(self):
         pygame.quit()
 
-    def on_execute(self):
-        if self.on_init() == False:
+    def execute(self):
+        if self.init() == False:
             self._running = False
 
         while self._running:
             for event in pygame.event.get():
-                self.on_event(event)
-            self.on_loop()
-            self.on_render()
-        self.on_cleanup()
+                self.event(event)
+            self.loop()
+            self.render()
+        self.cleanup()
 
 
-A = AudioInput.AudioInput(2048, 96000, 4096, 1)
+A = AudioInput.AudioInput(4096, 96000, 4096, 1)
 
 # get indexes for frequencies
 f = [0, A.indexFromFreq(60), A.indexFromFreq(120), A.indexFromFreq(220), A.indexFromFreq(600),
-     A.indexFromFreq(1000), A.indexFromFreq(2000), A.indexFromFreq(5000)]
-print(f)
+     A.indexFromFreq(1000), A.indexFromFreq(2000), A.indexFromFreq(4500)]
 
 
 def getBands():
+    f.sort()
     res = []
     for i in range(len(f) - 1):
         # get 2 bands from each frequency range
@@ -181,6 +186,7 @@ def getBands():
         res.append(sens * A.getSpectralBar((f[i] + f[i + 1]) // 2, f[i + 1]))
     return res
 
-
-w = Window()
-w.on_execute()
+if __name__ == "__main__":
+    w = Window()
+    w.execute()
+        
