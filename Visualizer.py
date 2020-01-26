@@ -107,7 +107,7 @@ class SpectrumVisual(Screen):
         super().__init__(size, pixel)
         self.addBand()
         self.calcBars()
-        self.changePalette("beat")
+        self.changePalette("gradientBeat")
         self.counter = 0
 
         # Colour Crossfade Variables
@@ -234,7 +234,8 @@ class SpectrumVisual(Screen):
                     self.tops[n][1] = 0
                 if self.tops[n][1] % self.topDelay == 0: self.tops[n][0] -= 1
                 if self.tops[n][0] >= 0:
-                    t[self.tops[n][0]] = red
+                    topos = min(self.tops[n][0]+1, self.size.y-1)
+                    t[topos] = col[topos]
                     self.tops[n][1] += 1
 
             res.append(t)
@@ -253,6 +254,5 @@ white = (255, 255, 255)
 
 A = AudioInput.AudioInput(4096, 96000, 4096, 1)
 
-if __name__ == "__main__":
-    w = Window(screens=(SpectrumVisual(), ), fpsLimiter=1)
-    w.execute()
+w = Window(screens=(SpectrumVisual(topDelay=1), ), fpsLimiter=1)
+w.execute()
