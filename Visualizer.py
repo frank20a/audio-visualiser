@@ -2,6 +2,10 @@ import AudioInput
 import pygame
 from random import randint
 from time import time
+import os
+import tkinter as tk
+from tkinter import *
+from tkinter import messagebox
 from pygame.locals import *
 
 
@@ -20,11 +24,17 @@ class Dimension:
 
 class Window:
     def __init__(self, screens: tuple = (), fpsLimiter=1):
+
         self.fpsLimiter = fpsLimiter
         self.screens = screens
         self._running = True
-        # self.screen = None
-        self.size = self.weight, self.height = 620, 600
+
+        self.width, self.height = (len(self.screens) - 1) * 10, 0
+        for i in self.screens:
+            self.width += i.resolution.x
+            self.height = max(self.height, i.resolution.y)
+        self.size = self.width, self.height
+
         self.counter = 0
         self.fps = 0
 
@@ -59,52 +69,60 @@ class Window:
 
     def render(self):
         self.screen.fill(black)
-        self.screen.blit(pygame.font.SysFont('Arial Bold', 30).render('FPS: %5.2f' % self.fps, False, red), (10, 10))
 
         for i in self.screens:
             display = i.render()
             for nx, x in enumerate(display):
                 for ny, y in enumerate(x):
                     pygame.draw.rect(self.screen, y,
-                                     pygame.Rect(100 + nx * (i.pixel.x + 5), 500 - ny * (i.pixel.y + 5), i.pixel.x,
+                                     pygame.Rect(nx * (i.pixel.x + i.pxDist),
+                                                 i.resolution.y + i.pxDist - (ny + 1) * (i.pixel.y + i.pxDist),
+                                                 i.pixel.x,
                                                  i.pixel.y))
 
+        self.screen.blit(pygame.font.SysFont('Arial Bold', 30).render('FPS: %5.2f' % self.fps, False, red), (10, 10))
+
     def cleanup(self):
+        print("pygame OUT")
         pygame.quit()
 
     def execute(self):
-        if self.init() == False:
-            self._running = False
-
-        while self._running:
+        if self._running:
             for event in pygame.event.get():
                 self.event(event)
             self.loop()
             self.render()
-        self.cleanup()
+        else: self.cleanup()
 
 
 class Screen:
-    def __init__(self, size: Dimension, pixel: Dimension) -> None:
-        self.size = size
-        self.data = [[0 for i in range(size.x)] for j in range(size.y)]
-        self.pixel = pixel
+    def __init__(self, size: Dimension, pixel: Dimension, pxDist: int) -> None:
+        self.updateSize(size, pixel, pxDist)
 
     def render(self):
         raise NotImplementedError()
 
+    def updateSize(self, size: Dimension = None, pixel: Dimension = None, pxDist: int = None):
+        if size is not None: self.size = size
+        if pixel is not None: self.pixel = pixel
+        if pxDist is not None: self.pxDist = pxDist
+        self.resolution = Dimension(self.size.x * (self.pixel.x + self.pxDist) - self.pxDist,
+                                    self.size.y * (self.pixel.y + self.pxDist) - self.pxDist)
+
 
 class SpectrumVisual(Screen):
-    def __init__(self, size: Dimension = Dimension(14, 20), pixel: Dimension = Dimension(25, 10),
+    def __init__(self, size: Dimension = Dimension(14, 20), pixel: Dimension = Dimension(25, 10), pxDist: int = 5,
                  sens: float = 0.035, topDelay: int = 0):
 
-        self.findex = [0, A.indexFromFreq(30), A.indexFromFreq(60), A.indexFromFreq(90), A.indexFromFreq(120), A.indexFromFreq(170),
-                A.indexFromFreq(220), A.indexFromFreq(410), A.indexFromFreq(600), A.indexFromFreq(800), A.indexFromFreq(1000),
-                A.indexFromFreq(1500), A.indexFromFreq(2000), A.indexFromFreq(3750), A.indexFromFreq(4500)]
+        self.findex = [0, A.indexFromFreq(30), A.indexFromFreq(60), A.indexFromFreq(90), A.indexFromFreq(120),
+                       A.indexFromFreq(170),
+                       A.indexFromFreq(220), A.indexFromFreq(410), A.indexFromFreq(600), A.indexFromFreq(800),
+                       A.indexFromFreq(1000),
+                       A.indexFromFreq(1500), A.indexFromFreq(2000), A.indexFromFreq(3750), A.indexFromFreq(4500)]
 
         self.sens = sens
         self.topDelay = topDelay
-        super().__init__(size, pixel)
+        super().__init__(size, pixel, pxDist)
         self.addBand()
         self.calcBars()
         self.changePalette("gradientBeat")
@@ -122,24 +140,23 @@ class SpectrumVisual(Screen):
         self.beatDetectionBar = 3
         self.beatDetect = [0 for i in range(20)]
 
-
     def calcBars(self):
         self.findex.sort()
         self.bar = []
         for i in range(len(self.findex) - 1):
             self.bar.append(self.sens * A.getSpectralBar(self.findex[i], self.findex[i + 1]))
-        return
 
     def addBand(self, x=0):
         if x > 0: self.findex.append(A.indexFromFreq(x))
         self.tops = [[0, 0] for i in range((len(self.findex) - 1) * 2)]
-        return
+        self.updateSize(size=Dimension(len(self.findex) - 1, self.size.y))
 
     def beatDetectColour(self):
         self.beatDetect.insert(0, self.bar[self.beatDetectionBar])
         self.beatDetect.pop()
 
-        if self.beatDetect[0] > sum(self.beatDetect)/len(self.beatDetect) * self.beatDetectSensitivity and self.beatDetect[0] > self.beatDetectThreshold:
+        if self.beatDetect[0] > sum(self.beatDetect) / len(self.beatDetect) * self.beatDetectSensitivity and \
+                self.beatDetect[0] > self.beatDetectThreshold:
             self.r = randint(0, 255)
             self.g = randint(0, 255)
             self.b = randint(0, 255)
@@ -194,8 +211,9 @@ class SpectrumVisual(Screen):
             self.crossfadeColours()[0][1], self.crossfadeColours()[0][0], self.crossfadeColours()[0][2]))
 
     def changePalette(self, x, *args):
-        class InvalidPaletteException (Exception):
+        class InvalidPaletteException(Exception):
             """Raise when given invalid palette argument"""
+
             def __init__(self):
                 super(InvalidPaletteException, self).__init__("Invalid palette argument")
 
@@ -206,20 +224,29 @@ class SpectrumVisual(Screen):
         # self.gradientCrossfadeColours
         # self.beatDetectGradient
 
-        if x == "peaking": self.palette = self.peakingColours()
-        elif x == "beat": self.palette = self.beatDetectColour
-        elif x == "gradient": self.palette = self.gradient(args[0], args[1])
-        elif x == "cross": self.palette = self.crossfadeColours
-        elif x == "gradientCross": self.palette = self.gradientCrossfadeColours
-        elif x == "gradientBeat": self.palette = self.beatDetectGradient
-        else: raise InvalidPaletteException
+        if x == "peaking":
+            self.palette = self.peakingColours()
+        elif x == "beat":
+            self.palette = self.beatDetectColour
+        elif x == "gradient":
+            self.palette = self.gradient(args[0], args[1])
+        elif x == "cross":
+            self.palette = self.crossfadeColours
+        elif x == "gradientCross":
+            self.palette = self.gradientCrossfadeColours
+        elif x == "gradientBeat":
+            self.palette = self.beatDetectGradient
+        else:
+            raise InvalidPaletteException
 
     def render(self):
         self.calcBars()
 
         self.counter += 1
-        if callable(self.palette): col = self.palette()
-        else: col = self.palette
+        if callable(self.palette):
+            col = self.palette()
+        else:
+            col = self.palette
 
         res = []
 
@@ -234,13 +261,35 @@ class SpectrumVisual(Screen):
                     self.tops[n][1] = 0
                 if self.tops[n][1] % self.topDelay == 0: self.tops[n][0] -= 1
                 if self.tops[n][0] >= 0:
-                    topos = min(self.tops[n][0]+1, self.size.y-1)
+                    topos = min(self.tops[n][0] + 1, self.size.y - 1)
                     t[topos] = col[topos]
                     self.tops[n][1] += 1
 
             res.append(t)
 
         return res
+
+
+class Application:
+    def __init__(self, window: Window):
+        self.root = tk.Tk()
+        self.root.protocol("WM_DELETE_WINDOW", self.quit)
+
+        self.window = window
+        self.frame = tk.Frame(self.root, width=self.window.width, height=self.window.height)
+        self.frame.pack(side=LEFT)
+        os.environ['SDL_WINDOWID'] = str(self.frame.winfo_id())
+        os.environ['SDL_VIDEODRIVER'] = 'windib'
+
+    def open(self):
+        self.window.init()
+        while True:
+            self.root.update()
+            self.window.execute()
+
+    def quit(self):
+        self.window._running = False
+        self.root.destroy()
 
 
 purple = (128, 0, 128)
@@ -254,5 +303,5 @@ white = (255, 255, 255)
 
 A = AudioInput.AudioInput(4096, 96000, 4096, 1)
 
-w = Window(screens=(SpectrumVisual(topDelay=1), ), fpsLimiter=1)
-w.execute()
+app = Application(Window(screens=(SpectrumVisual(topDelay=0),), fpsLimiter=1))
+app.open()
