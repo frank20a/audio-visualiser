@@ -1,25 +1,11 @@
-import AudioInput
+import audioInput
 import pygame
-from random import randint
 from time import time
 import os
 import tkinter as tk
 from tkinter import *
 from tkinter import ttk
-from pygame.locals import *
-
-
-class Dimension:
-    def __init__(self, x: int, y: int):
-        self.x = x
-        self.y = y
-
-    def getDiagonal(self):
-        return (self.x ** 2 + self.y ** 2) ** .5
-
-    def setDimension(self, s: tuple):
-        self.x = s[0]
-        self.y = s[1]
+from random import randint
 
 
 class Window:
@@ -41,7 +27,7 @@ class Window:
 
     def init(self):
         pygame.init()
-        pygame.display.set_caption("Visualizer v0.1a")
+        pygame.display.set_caption("Visualizer v0.2b")
         pygame.font.init()
         self.screen = pygame.display.set_mode(self.size, pygame.HWSURFACE | pygame.DOUBLEBUF)
 
@@ -76,11 +62,15 @@ class Window:
             display = i.render()
             for nx, x in enumerate(display):
                 for ny, y in enumerate(x):
-                    pygame.draw.rect(self.screen, y,
+                    try:
+                        pygame.draw.rect(self.screen, y,
                                      pygame.Rect(tempX + nx * (i.pixel.x + i.pxDist),
                                                  i.resolution.y + i.pxDist - (ny + 1) * (i.pixel.y + i.pxDist),
                                                  i.pixel.x,
                                                  i.pixel.y))
+                    except Exception as e:
+                        print(e)
+                        print(y)
             tempX += i.resolution.x + 10
 
         self.screen.blit(pygame.font.SysFont('Arial Bold', 30).render('FPS: %5.2f' % self.fps, False, red), (10, 10))
@@ -96,6 +86,19 @@ class Window:
             self.render()
         else:
             self.cleanup()
+
+
+class Dimension:
+    def __init__(self, x: int, y: int):
+        self.x = x
+        self.y = y
+
+    def getDiagonal(self):
+        return (self.x ** 2 + self.y ** 2) ** .5
+
+    def setDimension(self, s: tuple):
+        self.x = s[0]
+        self.y = s[1]
 
 
 class Screen:
@@ -115,20 +118,24 @@ class Screen:
                                     self.size.y * (self.pixel.y + self.pxDist) - self.pxDist)
 
 
-class SpectrumVisual(Screen):
+class Spectrum(Screen):
     number = 0
 
-    def __init__(self, audioDevice: AudioInput, size: Dimension = Dimension(14, 20), pixel: Dimension = Dimension(25, 10), pxDist: int = 5,
+    def __init__(self, audioDevice: audioInput.AudioInput, size: Dimension = Dimension(14, 20),
+                 pixel: Dimension = Dimension(25, 10), pxDist: int = 5,
                  sens: float = 0.03, topDelay: int = 0):
-        self.name = self.__class__.__name__ + ' - ' + str(SpectrumVisual.number)
-        SpectrumVisual.number += 1
+        self.name = self.__class__.__name__ + ' - ' + str(Spectrum.number)
+        Spectrum.number += 1
 
         self.audioDevice = audioDevice
-        self.findex = [0, self.audioDevice.indexFromFreq(30), self.audioDevice.indexFromFreq(60), self.audioDevice.indexFromFreq(90), self.audioDevice.indexFromFreq(120),
+        self.findex = [0, self.audioDevice.indexFromFreq(30), self.audioDevice.indexFromFreq(60),
+                       self.audioDevice.indexFromFreq(90), self.audioDevice.indexFromFreq(120),
                        self.audioDevice.indexFromFreq(170),
-                       self.audioDevice.indexFromFreq(220), self.audioDevice.indexFromFreq(410), self.audioDevice.indexFromFreq(600), self.audioDevice.indexFromFreq(800),
+                       self.audioDevice.indexFromFreq(220), self.audioDevice.indexFromFreq(410),
+                       self.audioDevice.indexFromFreq(600), self.audioDevice.indexFromFreq(800),
                        self.audioDevice.indexFromFreq(1000),
-                       self.audioDevice.indexFromFreq(1500), self.audioDevice.indexFromFreq(2000), self.audioDevice.indexFromFreq(3750), self.audioDevice.indexFromFreq(4500)]
+                       self.audioDevice.indexFromFreq(1500), self.audioDevice.indexFromFreq(2000),
+                       self.audioDevice.indexFromFreq(3750), self.audioDevice.indexFromFreq(4500)]
 
         self.sens = sens
         self.topDelay = topDelay
@@ -193,7 +200,7 @@ class SpectrumVisual(Screen):
             self.sensitivityLabel = tk.Label(self, text="Sensitivity")
             self.sensitivityLabel.grid(row=3, column=0, sticky=SW)
             self.sensitivitySlider = tk.Scale(self, command=self.changeSensitivity, orient=HORIZONTAL, from_=0.001,
-                                              to=0.5, resolution=0.001, showvalue=0, length=350,
+                                              to=0.1, resolution=0.001, showvalue=0, length=350,
                                               sliderlength=15)
             self.sensitivitySlider.set(self.parent.sens)
             self.sensitivitySlider.grid(row=3, column=1, columnspan=3, sticky=W)
@@ -331,9 +338,9 @@ class SpectrumVisual(Screen):
     def peakingColours(self):
         res = []
         for j in range(self.size.y):
-            if j > 17:
+            if j > self.size.y*0.9:
                 res.append(red)
-            elif j > 12:
+            elif j > self.size.y*0.7:
                 res.append(yellow)
             else:
                 res.append(green)
@@ -343,9 +350,9 @@ class SpectrumVisual(Screen):
         res = []
         for i in range(self.size.y):
             res.append((
-                c1[0] + i * (c2[0] - c1[0]) / 19,
-                c1[1] + i * (c2[1] - c1[1]) / 19,
-                c1[2] + i * (c2[2] - c1[2]) / 19
+                c1[0] + i * (c2[0] - c1[0]) / (self.size.y - 1),
+                c1[1] + i * (c2[1] - c1[1]) / (self.size.y - 1),
+                c1[2] + i * (c2[2] - c1[2]) / (self.size.y - 1)
             ))
         return res
 
@@ -419,6 +426,25 @@ class SpectrumVisual(Screen):
         return res
 
 
+class SpectrumLine(Spectrum):
+    number = 0
+
+    def __init__(self, audioDevice: audioInput.AudioInput, size: int = 40, pixel: Dimension = Dimension(15, 5), pxDist: int = 5,
+                 sens: float = 0.03, topDelay: int = 0, align: int = 0):
+        super().__init__(audioDevice, Dimension(1, size), pixel, pxDist, sens, topDelay)
+        self.align = align      # Align 0:Left, 1:Right, 2:Center
+
+        self.beatDetectionBar = 0
+
+    def calcBars(self):
+        self.findex.sort()
+        self.bar = []
+        self.bar.append(self.sens * self.audioDevice.getSpectralBar(self.findex[0], self.findex[1]))
+
+    def addBand(self, f1=90, f2=120):
+        self.findex = [self.audioDevice.indexFromFreq(f1), self.audioDevice.indexFromFreq(f2)]
+
+
 class Application(tk.Tk):
     def __init__(self, window: Window, *args, **kwargs):
         # Initiating tkinter application
@@ -472,6 +498,6 @@ black = (0, 0, 0)
 white = (255, 255, 255)
 
 if __name__ == "__main__":
-    A = AudioInput.AudioInput(4096, 96000, 4096, 1)
-    app = Application(Window(A, screens=(SpectrumVisual(A, topDelay=0), SpectrumVisual(A, topDelay=2)), fpsLimiter=1))
+    A = audioInput.AudioInput(4096, 96000, 4096, 1)
+    app = Application(Window(A, screens=(Spectrum(A, topDelay=0), SpectrumLine(A, topDelay=0)), fpsLimiter=1))
     app.open()

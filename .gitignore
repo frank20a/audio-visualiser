@@ -25,3 +25,5 @@ $RECYCLE.BIN/
 .idea/AudioVisualizer.iml
 *.xml
 __pycache__/AudioInput.cpython-36.pyc
+__pycache__/Visualizer.cpython-36.pyc
+*.bat
