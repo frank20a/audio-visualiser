@@ -6,6 +6,7 @@ import tkinter as tk
 from tkinter import *
 from tkinter import ttk
 from random import randint
+import customWidgets as cw
 
 
 class Window:
@@ -161,134 +162,35 @@ class Spectrum(Screen):
         self.settings = self.Menu(self)
 
     class Menu(tk.Frame):
-        def __init__(self, parent):
-            self.parent = parent
+        def __init__(self, screen):
+            self.screen = screen
 
         def create(self, *args, **kwargs):
             tk.Frame.__init__(self, width=200, height=100, *args, **kwargs)
             self.grid(column=0, row=0)
 
-            tk.Label(self, text=self.parent.name).grid(row=0, column=0, columnspan=4)
+            tk.Label(self, text=self.screen.name).pack(fill=X, expand=True)
 
             # Colour Mode Settings
-            tk.Label(self, text="Change Colour Mode").grid(row=1, column=0)
-            self.colourCombo = ttk.Combobox(self, values=["peaking", "beat", "gradient", "cross", "gradientCross",
-                                                          "gradientBeat"])
-            self.colourCombo.grid(row=1, column=1, sticky=W)
-            self.colourCombo.current(5)
-            self.colourCombo.bind("<<ComboboxSelected>>", self.ColourModeSelected)
-            self.colour1 = tk.Text(self, width=6, height=1)
-            self.colour1.insert(tk.END, "000000")
-            self.colour1.bind("<KeyRelease>", self.ColourModeSelected)
-            self.colour1.grid(row=1, column=2)
-            self.colour2 = tk.Text(self, width=6, height=1)
-            self.colour2.insert(tk.END, "000000")
-            self.colour2.bind("<KeyRelease>", self.ColourModeSelected)
-            self.colour2.grid(row=1, column=3)
+            cw.ColourModeSettings(self, self.screen).pack(fill=X)
 
             # Delay Settings
-            self.delayVar = IntVar()
-            self.delayCheck = tk.Checkbutton(self, text="Delay Tops", variable=self.delayVar, command=self.changeDelay)
-            self.delayCheck.grid(row=2, column=0, columnspan=2, sticky=W)
-            self.delayValText = tk.Text(self, width=2, height=1)
-            self.delayValText.bind("<KeyRelease>", self.changeDelay)
-            self.delayValText.grid(row=2, column=1, sticky=W)
-            self.delayValText.insert(tk.END, str(self.parent.topDelay))
-            if self.parent.topDelay > 0: self.delayCheck.invoke()
+            cw.DelaySettings(self, self.screen).pack(fill=X)
 
             # Sensitivity Settings
-            self.sensitivityLabel = tk.Label(self, text="Sensitivity")
-            self.sensitivityLabel.grid(row=3, column=0, sticky=SW)
-            self.sensitivitySlider = tk.Scale(self, command=self.changeSensitivity, orient=HORIZONTAL, from_=0.001,
-                                              to=0.1, resolution=0.001, showvalue=0, length=350,
-                                              sliderlength=15)
-            self.sensitivitySlider.set(self.parent.sens)
-            self.sensitivitySlider.grid(row=3, column=1, columnspan=3, sticky=W)
-            self.changeSensitivity()
+            cw.SensitivitySettings(self, self.screen).pack(fill=X)
 
             # Beat Detection Sensitivity Settings
-            self.beatSensitivityLabel = tk.Label(self, text="Beat Sensitivity")
-            self.beatSensitivityLabel.grid(row=4, column=0, sticky=SW)
-            self.beatSensitivitySlider = tk.Scale(self, command=self.changeBeatSensitivity, orient=HORIZONTAL,
-                                                  from_=1.5,
-                                                  to=3, resolution=0.15, showvalue=0, length=350,
-                                                  sliderlength=15)
-            self.beatSensitivitySlider.set(self.parent.beatDetectSensitivity)
-            self.beatSensitivitySlider.grid(row=4, column=1, columnspan=3, sticky=W)
-            self.changeBeatSensitivity()
+            cw.BeatSensitivitySettings(self, self.screen).pack(fill=X)
 
             # Beat Detection Bar Settings
-            self.beatBarLabel = tk.Label(self, text="Detection Bar")
-            self.beatBarLabel.grid(row=5, column=0, sticky=SW)
-            self.beatBarSlider = tk.Scale(self, command=self.changeDetectionBar, orient=HORIZONTAL, from_=1,
-                                          to=self.parent.size.x,
-                                          resolution=1, showvalue=0, length=130, sliderlength=15)
-            self.beatBarSlider.set(self.parent.beatDetectionBar)
-            self.beatBarSlider.grid(row=5, column=1, sticky=W)
-            self.changeDetectionBar()
+            cw.BeatBarSettings(self, self.screen).pack()
 
             # Beat Detection Threshold Settings
-            self.beatThreshLabel = tk.Label(self, text="Beat Threshold")
-            self.beatThreshLabel.grid(row=5, column=2, sticky=SW)
-            self.beatThreshSlider = tk.Scale(self, command=self.changeBeatThresh, orient=HORIZONTAL, from_=1,
-                                             to=int(self.parent.size.y * 1.5),
-                                             resolution=1, showvalue=0, length=100, sliderlength=15)
-            self.beatThreshSlider.set(self.parent.beatDetectThreshold)
-            self.beatThreshSlider.grid(row=5, column=3, sticky=W)
-            self.changeDetectionBar()
+            cw.BeatThresholdSettings(self, self.screen).pack(fill=X)
 
             # Colour Crossfade Sensitivity Settings
-            self.fadeSpeedLabel = tk.Label(self, text="Colour Fade Speed")
-            self.fadeSpeedLabel.grid(row=6, column=0, sticky=SW)
-            self.fadeSpeedSlider = tk.Scale(self, command=self.changeFadeSpeed, orient=HORIZONTAL, from_=15,
-                                            to=1, resolution=1, showvalue=0, length=350, sliderlength=15)
-            self.fadeSpeedSlider.set(self.parent.crossfadeSpeed)
-            self.fadeSpeedSlider.grid(row=6, column=1, columnspan=3, sticky=W)
-            self.changeFadeSpeed()
-
-        def changeFadeSpeed(self, event=None):
-            self.parent.crossfadeSpeed = int(self.fadeSpeedSlider.get())
-            self.fadeSpeedLabel.config(text="Colour Fade Speed: {0}".format(int(self.fadeSpeedSlider.get())))
-
-        def changeBeatThresh(self, event=None):
-            self.parent.beatDetectThreshold = int(self.beatThreshSlider.get()) - 1
-            self.beatThreshLabel.config(text="Beat Threshold: {0:2}".format(int(self.beatThreshSlider.get())))
-
-        def changeDetectionBar(self, event=None):
-            self.parent.beatDetectionBar = int(self.beatBarSlider.get()) - 1
-            self.beatBarLabel.config(text="Detection Bar: {0}".format(int(self.beatBarSlider.get())))
-
-        def changeBeatSensitivity(self, event=None):
-            self.parent.beatDetectSensitivity = self.beatSensitivitySlider.get()
-            self.beatSensitivityLabel.config(text="Beat Sensitivity: {0:3.2f}".format(self.beatSensitivitySlider.get()))
-
-        def changeSensitivity(self, event=None):
-            self.parent.sens = self.sensitivitySlider.get()
-            self.sensitivityLabel.config(text="Sensitivity: {0:4.3f}".format(self.sensitivitySlider.get()))
-
-        def changeDelay(self, event=None):
-            if self.delayVar.get():
-                t = int(self.delayValText.get("1.0", "end-1c"))
-                if t > 0:
-                    self.parent.topDelay = t
-                else:
-                    self.delayValText.delete('1.0', tk.END)
-                    self.delayValText.insert(tk.END, "1")
-                    self.parent.topDelay = 1
-
-
-            else:
-                self.parent.topDelay = 0
-
-        def ColourModeSelected(self, event):
-            try:
-                c1 = self.colour1.get("1.0", "end-1c")
-                c1 = (int(c1[0:2], 16), int(c1[2:4], 16), int(c1[4:6], 16))
-                c2 = self.colour2.get("1.0", "end-1c")
-                c2 = (int(c2[0:2], 16), int(c2[2:4], 16), int(c2[4:6], 16))
-                self.parent.changePalette(self.colourCombo.get(), c1, c2)
-            except:
-                pass
+            cw.CrossfadeSpeedSettings(self, self.screen).pack(fill=X)
 
     def calcBars(self):
         self.findex.sort()
