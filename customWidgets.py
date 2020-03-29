@@ -3,26 +3,43 @@ from tkinter import ttk
 from tkinter import *
 
 
+class SettingsPanel(tk.Frame):
+    def __init__(self, parent, window):
+        tk.Frame.__init__(self, parent)
+
+        self.window = window
+
+        tk.Label(self, text="Settings for screen: ").pack(side=LEFT)
+        self.settingsSelectorCombo = ttk.Combobox(self, values=[i.name for i in self.window.screens],
+                                                  width=30)
+        self.settingsSelectorCombo.bind("<<ComboboxSelected>>", self.selectSettingPanel)
+        self.settingsSelectorCombo.current(0)
+        self.settingsSelectorCombo.pack(side=LEFT)
+
+    def selectSettingPanel(self, event=None):
+        self.window.screens[self.settingsSelectorCombo.current()].settings.tkraise()
+
+
 class ColourModeSettings(tk.Frame):
     def __init__(self, parent, screen):
         tk.Frame.__init__(self, parent)
 
         self.screen = screen
 
-        tk.Label(self, text="Change Colour Mode").grid(row=0, column=0)
+        tk.Label(self, text="Change Colour Mode").pack(side=LEFT, fill=X)
         self.colourCombo = ttk.Combobox(self, values=["peaking", "beat", "gradient", "cross", "gradientCross",
                                                       "gradientBeat"])
-        self.colourCombo.grid(row=0, column=1, sticky=W)
+        self.colourCombo.pack(side=LEFT, fill=X)
         self.colourCombo.current(5)
         self.colourCombo.bind("<<ComboboxSelected>>", self.ColourModeSelected)
         self.colour1 = tk.Text(self, width=6, height=1)
         self.colour1.insert(tk.END, "000000")
         self.colour1.bind("<KeyRelease>", self.ColourModeSelected)
-        self.colour1.grid(row=0, column=2)
+        self.colour1.pack(side=RIGHT, expand=YES, fill=X)
         self.colour2 = tk.Text(self, width=6, height=1)
         self.colour2.insert(tk.END, "000000")
         self.colour2.bind("<KeyRelease>", self.ColourModeSelected)
-        self.colour2.grid(row=0, column=3, sticky=E)
+        self.colour2.pack(side=RIGHT, expand=YES, fill=X)
 
     def ColourModeSelected(self, event):
         try:
@@ -161,3 +178,5 @@ class CrossfadeSpeedSettings(tk.Frame):
     def changeFadeSpeed(self, event=None):
         self.screen.crossfadeSpeed = int(self.fadeSpeedSlider.get())
         self.fadeSpeedLabel.config(text="Colour Fade Speed: {0}".format(int(self.fadeSpeedSlider.get())))
+
+

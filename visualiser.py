@@ -1,4 +1,3 @@
-import audioInput
 import pygame
 from time import time
 import os
@@ -6,7 +5,10 @@ import tkinter as tk
 from tkinter import *
 from tkinter import ttk
 from random import randint
+
+import audioInput
 import customWidgets as cw
+import settingsPanels as sp
 
 
 class Window:
@@ -102,7 +104,7 @@ class Dimension:
         self.y = s[1]
 
 
-class Screen:
+class Screen():
     def __init__(self, size: Dimension, pixel: Dimension, pxDist: int) -> None:
 
         self.updateSize(size, pixel, pxDist)
@@ -118,6 +120,9 @@ class Screen:
         self.resolution = Dimension(self.size.x * (self.pixel.x + self.pxDist) - self.pxDist,
                                     self.size.y * (self.pixel.y + self.pxDist) - self.pxDist)
 
+    def createSettings(self, parent):
+        raise NotImplementedError()
+
 
 class Spectrum(Screen):
     number = 0
@@ -129,14 +134,9 @@ class Spectrum(Screen):
         Spectrum.number += 1
 
         self.audioDevice = audioDevice
-        self.findex = [0, self.audioDevice.indexFromFreq(30), self.audioDevice.indexFromFreq(60),
-                       self.audioDevice.indexFromFreq(90), self.audioDevice.indexFromFreq(120),
-                       self.audioDevice.indexFromFreq(170),
-                       self.audioDevice.indexFromFreq(220), self.audioDevice.indexFromFreq(410),
-                       self.audioDevice.indexFromFreq(600), self.audioDevice.indexFromFreq(800),
-                       self.audioDevice.indexFromFreq(1000),
-                       self.audioDevice.indexFromFreq(1500), self.audioDevice.indexFromFreq(2000),
-                       self.audioDevice.indexFromFreq(3750), self.audioDevice.indexFromFreq(4500)]
+        self.findex = [0]
+        freqs = [30, 60, 90, 120, 170, 220, 410, 600, 800, 1000, 1500, 2000, 3750, 4500]
+        self.findex = self.findex + [self.audioDevice.indexFromFreq(f) for f in freqs]
 
         self.sens = sens
         self.topDelay = topDelay
@@ -158,39 +158,9 @@ class Spectrum(Screen):
         self.beatDetectionBar = 3
         self.beatDetect = [0 for i in range(20)]
 
-        # Create settings menu for display
-        self.settings = self.Menu(self)
-
-    class Menu(tk.Frame):
-        def __init__(self, screen):
-            self.screen = screen
-
-        def create(self, *args, **kwargs):
-            tk.Frame.__init__(self, width=200, height=100, *args, **kwargs)
-            self.grid(column=0, row=0)
-
-            tk.Label(self, text=self.screen.name).pack(fill=X, expand=True)
-
-            # Colour Mode Settings
-            cw.ColourModeSettings(self, self.screen).pack(fill=X)
-
-            # Delay Settings
-            cw.DelaySettings(self, self.screen).pack(fill=X)
-
-            # Sensitivity Settings
-            cw.SensitivitySettings(self, self.screen).pack(fill=X)
-
-            # Beat Detection Sensitivity Settings
-            cw.BeatSensitivitySettings(self, self.screen).pack(fill=X)
-
-            # Beat Detection Bar Settings
-            cw.BeatBarSettings(self, self.screen).pack()
-
-            # Beat Detection Threshold Settings
-            cw.BeatThresholdSettings(self, self.screen).pack(fill=X)
-
-            # Colour Crossfade Sensitivity Settings
-            cw.CrossfadeSpeedSettings(self, self.screen).pack(fill=X)
+    def createSettings(self, parent) -> tk.Frame:
+        self.settings = sp.SpectrumMenu(parent, self)
+        return self.settings
 
     def calcBars(self):
         self.findex.sort()
@@ -338,6 +308,10 @@ class SpectrumLine(Spectrum):
 
         self.beatDetectionBar = 0
 
+    def createSettings(self, parent) -> tk.Frame:
+        self.settings = sp.LineMenu(parent, self)
+        return self.settings
+
     def calcBars(self):
         self.findex.sort()
         self.bar = []
@@ -356,28 +330,22 @@ class Application(tk.Tk):
         # Integrating pygame window
         self.window = window
         self.frame = tk.Frame(self, width=self.window.width, height=self.window.height)
-        self.frame.grid(row=0, column=0, rowspan=10)
+        self.frame.pack(side=LEFT)
         os.environ['SDL_WINDOWID'] = str(self.frame.winfo_id())
         os.environ['SDL_VIDEODRIVER'] = 'windib'
 
         # Settings Panel
-        settingSelector = tk.Frame(self)
-        tk.Label(settingSelector, text="Settings for screen: ").pack(side=LEFT)
-        self.settingsSelectorCombo = ttk.Combobox(settingSelector, values=[i.name for i in self.window.screens],
-                                                  width=30)
-        self.settingsSelectorCombo.bind("<<ComboboxSelected>>", self.selectSettingPanel)
-        self.settingsSelectorCombo.current(0)
-        self.settingsSelectorCombo.pack(side=LEFT)
-        settingSelector.grid(row=0, column=1, sticky=NW)
+        settingSelector = cw.SettingsPanel(self, self.window)
+        settingSelector.pack(fill=X)
         self.SettingsContainer = tk.Frame(self)
-        self.SettingsContainer.grid(row=1, column=1, sticky=N)
+        self.SettingsContainer.pack(fill=BOTH, expand=YES)
+
         # Create all the Frames for the settings panels
         for n, i in enumerate(self.window.screens):
-            i.settings.create(self.SettingsContainer)
-        self.selectSettingPanel(None)
+            i.createSettings(self.SettingsContainer).grid(row=0, column=0)
 
-    def selectSettingPanel(self, event):
-        self.window.screens[self.settingsSelectorCombo.current()].settings.tkraise()
+        settingSelector.selectSettingPanel()
+
 
     def open(self):
         self.window.init()
