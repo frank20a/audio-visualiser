@@ -6,6 +6,7 @@ from tkinter import *
 
 import audioInput
 from spectrum import Spectrum, SpectrumLine
+from boxes import ResponsiveStar, ResponsiveBox
 from colors import *
 import customWidgets as cw
 
@@ -131,5 +132,5 @@ class Application(tk.Tk):
 
 if __name__ == "__main__":
     A = audioInput.AudioInput(4096, 96000, 4096, 1)
-    app = Application(Window(A, screens=(Spectrum(A, topDelay=0), SpectrumLine(A, topDelay=0, align=2)), fpsLimiter=1))
+    app = Application(Window(A, screens=(ResponsiveStar(A, size=20), ResponsiveBox(A, size=20)), fpsLimiter=1))
     app.open()

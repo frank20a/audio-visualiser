@@ -162,9 +162,9 @@ class Spectrum(Screen):
         res = []
 
         for n, i in enumerate(self.bar):
-            t = [black for i in range(self.size.y)]
+            t = [black for i in range(self.barLength)]
 
-            for j in range(min(int(i) + 1, self.size.y)): t[j] = col[j]
+            for j in range(min(int(i) + 1, self.barLength)): t[j] = col[j]
 
             if self.topDelay > 0:
                 if i > self.tops[n][0]:
@@ -184,9 +184,12 @@ class Spectrum(Screen):
 class SpectrumLine(Spectrum):
     number = 0
 
-    def __init__(self, audioDevice: audioInput.AudioInput, size: int = 40, pixel: Dimension = Dimension(15, 5),
-                 pxDist: int = 5, sens: float = 0.03, topDelay: int = 0, align: int = 0):
+    def __init__(self, audioDevice: audioInput.AudioInput, freqRange: tuple = (90, 120), size: int = 40,
+                 pixel: Dimension = Dimension(15, 5), pxDist: int = 5, sens: float = 0.03, topDelay: int = 0,
+                 align: int = 0):
+
         self.align = align  # Align 0:Bottom, 1:Top, 2:Center
+        self.freqRage = freqRange
 
         Spectrum.__init__(self, audioDevice, Dimension(1, size), pixel, pxDist, sens, topDelay)
 
@@ -198,16 +201,15 @@ class SpectrumLine(Spectrum):
 
     def render(self):
         res = Spectrum.render(self)
-        if self.align == 1:
-            res[0] = res[0][::-1]
+        if self.align == 1: res[0] = res[0][::-1]
         if self.align == 2:
             if self.size.y % 2 == 0:
                 res[0] = res[0][-2::-2] + res[0][::2]
             else:
                 res[0] = res[0][-2::-2] + [res[0][0]] + res[0][1::2]
-                print(len(res[0]))
 
         return res
 
-    def addBand(self, f1=90, f2=120):
-        self.findex = [self.audioDevice.indexFromFreq(f1), self.audioDevice.indexFromFreq(f2)]
+    def addBand(self):
+        self.findex = [self.audioDevice.indexFromFreq(self.freqRage[0]),
+                       self.audioDevice.indexFromFreq(self.freqRage[1])]
