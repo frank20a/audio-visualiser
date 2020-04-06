@@ -4,6 +4,7 @@ import audioInput
 from dimension import Dimension
 import settingsPanels as sp
 from spectrum import Spectrum
+from math import exp, sin, pi
 
 
 class ResponsiveBox(Spectrum):
@@ -59,5 +60,29 @@ class ResponsiveStar(ResponsiveBox):
             res[size - n][size - n] = i
             res[size + n][size + n] = i
             res[size + n][size - n] = i
+
+        return res
+
+
+class ResponsiveHelix(ResponsiveBox):
+    def render(self):
+        size = int((self.size.x + 1) / 2)
+        temp = Spectrum.render(self)[0]
+        res = [[0 for i in range(2 * size - 1)] for j in range(2 * size - 1)]
+
+        size -= 1
+        pr = 0
+        for n, i in enumerate(temp):
+            # int(n * exp((n - size) / size))
+            for j in range(pr, int(n * sin(pi * n / size)) + 1):
+                res[size - n][size + j] = i
+                res[size - n][size - n + j] = i
+                res[size + n][size - j] = i
+                res[size + n][size + n - j] = i
+                res[size - j][size - n] = i
+                res[size - j + n][size - n] = i
+                res[size + j][size + n] = i
+                res[size + j - n][size + n] = i
+            pr = int(n * sin(pi * n / size))
 
         return res
