@@ -12,8 +12,7 @@ class Spectrum(Screen):
     number = 0
 
     def __init__(self, audioDevice: audioInput.AudioInput, size: Dimension = Dimension(14, 20),
-                 pixel: Dimension = Dimension(25, 10), pxDist: int = 5,
-                 sens: float = 0.03, topDelay: int = 0):
+                 pixel: Dimension = Dimension(25, 10), pxDist: int = 5, sens: float = 0.03, topDelay: int = 0):
         self.name = self.__class__.__name__ + ' - ' + str(Spectrum.number)
         Spectrum.number += 1
 
@@ -24,7 +23,7 @@ class Spectrum(Screen):
 
         self.sens = sens
         self.topDelay = topDelay
-        super().__init__(size, pixel, pxDist)
+        Screen.__init__(self, size, pixel, pxDist)
         self.addBand()
         self.calcBars()
         self.changePalette("gradientBeat")
@@ -106,9 +105,9 @@ class Spectrum(Screen):
         res = []
         for i in range(self.size.y):
             res.append((
-                c1[0] + i * (c2[0] - c1[0]) / (self.size.y - 1),
-                c1[1] + i * (c2[1] - c1[1]) / (self.size.y - 1),
-                c1[2] + i * (c2[2] - c1[2]) / (self.size.y - 1)
+                int(c1[0] + i * (c2[0] - c1[0]) / (self.size.y - 1)),
+                int(c1[1] + i * (c2[1] - c1[1]) / (self.size.y - 1)),
+                int(c1[2] + i * (c2[2] - c1[2]) / (self.size.y - 1))
             ))
         return res
 
@@ -186,10 +185,10 @@ class SpectrumLine(Spectrum):
     number = 0
 
     def __init__(self, audioDevice: audioInput.AudioInput, size: int = 40, pixel: Dimension = Dimension(15, 5),
-                 pxDist: int = 5,
-                 sens: float = 0.03, topDelay: int = 0, align: int = 0):
-        super().__init__(audioDevice, Dimension(1, size), pixel, pxDist, sens, topDelay)
-        self.align = align  # Align 0:Left, 1:Right, 2:Center
+                 pxDist: int = 5, sens: float = 0.03, topDelay: int = 0, align: int = 0):
+        self.align = align  # Align 0:Bottom, 1:Top, 2:Center
+
+        Spectrum.__init__(self, audioDevice, Dimension(1, size), pixel, pxDist, sens, topDelay)
 
         self.beatDetectionBar = 0
 
@@ -197,10 +196,18 @@ class SpectrumLine(Spectrum):
         self.settings = sp.LineMenu(parent, self)
         return self.settings
 
-    def calcBars(self):
-        self.findex.sort()
-        self.bar = []
-        self.bar.append(self.sens * self.audioDevice.getSpectralBar(self.findex[0], self.findex[1]))
+    def render(self):
+        res = Spectrum.render(self)
+        if self.align == 1:
+            res[0] = res[0][::-1]
+        if self.align == 2:
+            if self.size.y % 2 == 0:
+                res[0] = res[0][-2::-2] + res[0][::2]
+            else:
+                res[0] = res[0][-2::-2] + [res[0][0]] + res[0][1::2]
+                print(len(res[0]))
+
+        return res
 
     def addBand(self, f1=90, f2=120):
         self.findex = [self.audioDevice.indexFromFreq(f1), self.audioDevice.indexFromFreq(f2)]

@@ -95,6 +95,7 @@ class Application(tk.Tk):
         # Initiating tkinter application
         tk.Tk.__init__(self, *args, **kwargs)
         self.protocol("WM_DELETE_WINDOW", self.quit)
+        self._running = True
 
         # Integrating pygame window
         self.window = window
@@ -118,17 +119,17 @@ class Application(tk.Tk):
 
     def open(self):
         self.window.init()
-        while True:
+        while self._running:
             self.update()
             self.window.execute()
 
     def quit(self):
         self.window._running = False
+        self._running = False
         self.destroy()
-
 
 
 if __name__ == "__main__":
     A = audioInput.AudioInput(4096, 96000, 4096, 1)
-    app = Application(Window(A, screens=(Spectrum(A, topDelay=0), SpectrumLine(A, topDelay=0)), fpsLimiter=1))
+    app = Application(Window(A, screens=(Spectrum(A, topDelay=0), SpectrumLine(A, topDelay=0, align=2)), fpsLimiter=1))
     app.open()
