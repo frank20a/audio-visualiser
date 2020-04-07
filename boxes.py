@@ -11,7 +11,7 @@ class ResponsiveBox(Spectrum):
     number = 0
 
     def __init__(self, audioDevice: audioInput.AudioInput, freqRange: tuple = (90, 120), size: int = 10,
-                 pixel: int = 10, pxDist: int = 5, sens: float = 0.03, topDelay: int = 0):
+                 pixel: int = 10, pxDist: int = 0, sens: float = 0.03, topDelay: int = 0):
         self.freqRage = freqRange
 
         Spectrum.__init__(self, audioDevice, Dimension(2 * size - 1, 2 * size - 1), Dimension(pixel, pixel), pxDist,
@@ -39,9 +39,14 @@ class ResponsiveBox(Spectrum):
 
         return res
 
-    def addBand(self):
+    def addBand(self, freqRange=None):
+        self.tops = [[0, 0] for i in range((len(self.findex) - 1) * 2)]
+        if freqRange: self.freqRage = freqRange
         self.findex = [self.audioDevice.indexFromFreq(self.freqRage[0]),
                        self.audioDevice.indexFromFreq(self.freqRage[1])]
+
+    def getFreqRange(self) -> tuple:
+        return self.freqRage
 
 
 class ResponsiveStar(ResponsiveBox):
@@ -74,7 +79,7 @@ class ResponsiveHelix(ResponsiveBox):
         pr = 0
         for n, i in enumerate(temp):
             # int(n * exp((n - size) / size))
-            for j in range(pr, int(n * sin(pi * n / size)) + 1):
+            for j in range(pr, max(pr + 1, int(n * sin(pi * n / size)))):
                 res[size - n][size + j] = i
                 res[size - n][size - n + j] = i
                 res[size + n][size - j] = i

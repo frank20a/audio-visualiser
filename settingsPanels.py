@@ -56,3 +56,6 @@ class LineMenu(tk.Frame):
 
         # Colour Crossfade Sensitivity Settings
         cw.CrossfadeSpeedSettings(self, self.screen).grid(row=6, column=0, sticky=W)
+
+        # Changing Frequency Settings
+        cw.BarFreqSettings(self, self.screen).grid(row=7, column=0, sticky=W)

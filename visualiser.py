@@ -96,6 +96,7 @@ class Application(tk.Tk):
         # Initiating tkinter application
         tk.Tk.__init__(self, *args, **kwargs)
         self.protocol("WM_DELETE_WINDOW", self.quit)
+        self.title("Audio Visualiser")
         self._running = True
 
         # Integrating pygame window
@@ -114,7 +115,6 @@ class Application(tk.Tk):
         # Create all the Frames for the settings panels
         for n, i in enumerate(self.window.screens):
             i.createSettings(self.SettingsContainer).grid(row=0, column=0)
-
         settingSelector.selectSettingPanel()
 
 
@@ -132,5 +132,5 @@ class Application(tk.Tk):
 
 if __name__ == "__main__":
     A = audioInput.AudioInput(4096, 96000, 4096, 1)
-    app = Application(Window(A, screens=(ResponsiveStar(A, size=20), ResponsiveHelix(A, size=20)), fpsLimiter=1))
+    app = Application(Window(A, screens=(ResponsiveStar(A, size=35, topDelay=2),), fpsLimiter=1))
     app.open()

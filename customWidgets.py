@@ -35,11 +35,11 @@ class ColourModeSettings(tk.Frame):
         self.colour1 = tk.Text(self, width=6, height=1)
         self.colour1.insert(tk.END, "000000")
         self.colour1.bind("<KeyRelease>", self.ColourModeSelected)
-        self.colour1.pack(side=RIGHT, expand=YES, fill=X)
+        self.colour1.pack(side=RIGHT, expand=YES, fill=X, padx=10)
         self.colour2 = tk.Text(self, width=6, height=1)
         self.colour2.insert(tk.END, "000000")
         self.colour2.bind("<KeyRelease>", self.ColourModeSelected)
-        self.colour2.pack(side=RIGHT, expand=YES, fill=X)
+        self.colour2.pack(side=RIGHT, expand=YES, fill=X, padx=10)
 
     def ColourModeSelected(self, event):
         try:
@@ -180,3 +180,22 @@ class CrossfadeSpeedSettings(tk.Frame):
         self.fadeSpeedLabel.config(text="Colour Fade Speed: {0}".format(int(self.fadeSpeedSlider.get())))
 
 
+class BarFreqSettings(tk.Frame):
+    def __init__(self, parent, screen):
+        tk.Frame.__init__(self, parent)
+        self.screen = screen
+
+        tk.Label(self, text="Freq 1: ").grid(column=0, row=0, padx=10)
+        self.freq1 = tk.Text(self, width=6, height=1)
+        self.freq1.insert(tk.END, str(self.screen.getFreqRange()[0]))
+        self.freq1.grid(column=1, row=0)
+        tk.Label(self, text="Freq 2: ").grid(column=2, row=0, padx=10)
+        self.freq2 = tk.Text(self, width=6, height=1)
+        self.freq2.insert(tk.END, str(self.screen.getFreqRange()[1]))
+        self.freq2.grid(column=3, row=0)
+        tk.Button(self, text="Set", command=self.changeFreqs).grid(column=4, row=0, padx=10)
+        self.freq1.bind("<KeyRelease>", self.changeFreqs())
+        self.freq2.bind("<KeyRelease>", self.changeFreqs())
+
+    def changeFreqs(self):
+        self.screen.addBand((int(self.freq1.get("1.0", "end-1c")), int(self.freq2.get("1.0", "end-1c"))))

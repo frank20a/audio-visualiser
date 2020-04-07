@@ -45,18 +45,18 @@ class Spectrum(Screen):
         self.settings = sp.SpectrumMenu(parent, self)
         return self.settings
 
-    def calcBars(self):
+    def calcBars(self) -> None:
         self.findex.sort()
         self.bar = []
         for i in range(len(self.findex) - 1):
             self.bar.append(self.sens * self.audioDevice.getSpectralBar(self.findex[i], self.findex[i + 1]))
 
-    def addBand(self, x=0):
+    def addBand(self, x=0) -> None:
         if x > 0: self.findex.append(self.audioDevice.indexFromFreq(x))
         self.tops = [[0, 0] for i in range((len(self.findex) - 1) * 2)]
         self.updateSize(size=Dimension(len(self.findex) - 1, self.size.y))
 
-    def beatDetectColour(self):
+    def beatDetectColour(self) -> list:
         self.beatDetect.insert(0, self.bar[self.beatDetectionBar])
         self.beatDetect.pop()
 
@@ -67,13 +67,13 @@ class Spectrum(Screen):
             self.b = randint(0, 255)
 
         return [(min(max(self.r, 75), 240), min(max(self.g, 75), 240), min(max(self.b, 75), 240)) for i in
-                range(self.size.y)]
+                range(self.barLength)]
 
-    def beatDetectGradient(self):
+    def beatDetectGradient(self) -> list:
         t = self.beatDetectColour()
         return self.gradient(t[0], (t[0][2], t[0][0], t[0][1]))
 
-    def crossfadeColours(self):
+    def crossfadeColours(self) -> list:
         if self.counter % self.crossfadeSpeed == 0:
             if self.b <= 75 and self.g > 75:
                 self.b = 75
@@ -88,34 +88,34 @@ class Spectrum(Screen):
                 self.g += 20
                 self.b -= 20
         return [(min(max(self.r, 75), 240), min(max(self.g, 75), 240), min(max(self.b, 75), 240)) for i in
-                range(self.size.y)]
+                range(self.barLength)]
 
-    def peakingColours(self):
+    def peakingColours(self) -> list:
         res = []
-        for j in range(self.size.y):
-            if j > self.size.y * 0.9:
+        for j in range(self.barLength):
+            if j > self.barLength * 0.9:
                 res.append(red)
-            elif j > self.size.y * 0.7:
+            elif j > self.barLength * 0.7:
                 res.append(yellow)
             else:
                 res.append(green)
         return res
 
-    def gradient(self, c1, c2):
+    def gradient(self, c1, c2) -> list:
         res = []
-        for i in range(self.size.y):
+        for i in range(self.barLength):
             res.append((
-                int(c1[0] + i * (c2[0] - c1[0]) / (self.size.y - 1)),
-                int(c1[1] + i * (c2[1] - c1[1]) / (self.size.y - 1)),
-                int(c1[2] + i * (c2[2] - c1[2]) / (self.size.y - 1))
+                int(c1[0] + i * (c2[0] - c1[0]) / (self.barLength - 1)),
+                int(c1[1] + i * (c2[1] - c1[1]) / (self.barLength - 1)),
+                int(c1[2] + i * (c2[2] - c1[2]) / (self.barLength - 1))
             ))
         return res
 
-    def gradientCrossfadeColours(self):
+    def gradientCrossfadeColours(self) -> list:
         return self.gradient(self.crossfadeColours()[0], (
             self.crossfadeColours()[0][1], self.crossfadeColours()[0][0], self.crossfadeColours()[0][2]))
 
-    def changePalette(self, x, *args):
+    def changePalette(self, x, *args) -> None:
         class InvalidPaletteException(Exception):
             """Raise when given invalid palette argument"""
 
@@ -150,7 +150,7 @@ class Spectrum(Screen):
         else:
             raise InvalidPaletteException
 
-    def render(self):
+    def render(self) -> list:
         self.calcBars()
 
         self.counter += 1
@@ -168,11 +168,11 @@ class Spectrum(Screen):
 
             if self.topDelay > 0:
                 if i > self.tops[n][0]:
-                    self.tops[n][0] = min(int(i), self.size.y)
+                    self.tops[n][0] = min(int(i), self.barLength)
                     self.tops[n][1] = 0
                 if self.tops[n][1] % self.topDelay == 0: self.tops[n][0] -= 1
                 if self.tops[n][0] >= 0:
-                    topos = min(self.tops[n][0] + 1, self.size.y - 1)
+                    topos = min(self.tops[n][0] + 1, self.barLength - 1)
                     t[topos] = col[topos]
                     self.tops[n][1] += 1
 
@@ -199,7 +199,7 @@ class SpectrumLine(Spectrum):
         self.settings = sp.LineMenu(parent, self)
         return self.settings
 
-    def render(self):
+    def render(self) -> list:
         res = Spectrum.render(self)
         if self.align == 1: res[0] = res[0][::-1]
         if self.align == 2:
@@ -210,6 +210,12 @@ class SpectrumLine(Spectrum):
 
         return res
 
-    def addBand(self):
+    def addBand(self, freqRange=None) -> None:
+        self.tops = [[0, 0] for i in range((len(self.findex) - 1) * 2)]
+        if freqRange: self.freqRage = freqRange
+
         self.findex = [self.audioDevice.indexFromFreq(self.freqRage[0]),
                        self.audioDevice.indexFromFreq(self.freqRage[1])]
+
+    def getFreqRange(self) -> tuple:
+        return self.freqRage
