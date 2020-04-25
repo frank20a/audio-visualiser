@@ -16,8 +16,16 @@ class SettingsPanel(tk.Frame):
         self.settingsSelectorCombo.current(0)
         self.settingsSelectorCombo.pack(side=LEFT)
 
+        self.live = StringVar()
+        self.live.set(self.settingsSelectorCombo.get())
+        self.liveBtn = Radiobutton(self, text="LIVE", variable=self.live, value=self.settingsSelectorCombo.get(),
+                                   state=DISABLED)
+        self.liveBtn.pack(side=LEFT)
+
     def selectSettingPanel(self, event=None):
         self.window.screens[self.settingsSelectorCombo.current()].settings.tkraise()
+
+        self.liveBtn['value'] = self.settingsSelectorCombo.get()
 
 
 class ColourModeSettings(tk.Frame):

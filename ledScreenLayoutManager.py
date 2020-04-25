@@ -1,40 +1,14 @@
 from tkinter import *
 from tkinter import filedialog, simpledialog
-from customMenus import LedMenubar, LedToolbar, LedSidebar
-from dimension import Dimension
 import json
 import os
+from multiprocessing import Queue
+import queue
 
-
-class LedIndexError(Exception):
-    """LED List index out of range or not found"""
-    pass
-
-
-class InvalidIndexType(Exception):
-    """LED list index is of invalid type. Use pos tuple or index number"""
-    pass
-
-
-class LedNotFound(Exception):
-    """LED List index not found for given position"""
-    pass
-
-
-class TargetNotInLine(Exception):
-    """Target LED is not in direct line with previous"""
-    pass
-
-
-class NothingToDraw(Exception):
-    """Cannot draw nothing"""
-    pass
-
-
-class LedAlreadyPresent(Exception):
-    """Tried to insert LED over existing one"""
-    pass
-
+from customMenus import LedMenubar, LedToolbar, LedSidebar
+from dimension import Dimension
+from customExceptions import *
+from connections import ConsoleConn
 
 with open('ledScreenLayoutManager.info', 'r', encoding="utf8") as f:
     info = json.load(f)
@@ -269,15 +243,12 @@ class LedCanvas(Canvas):
 
 
 class App(Tk):
-    class LedLayoutEmpty(Exception):
-        """LED Layout is currently empty"""
-        pass
-
-    def __init__(self):
+    def __init__(self, queue: Queue):
         super().__init__()
 
         # Window settings
-        self.minsize(width=800, height=600)
+        self.minsize(width=900, height=600)
+        self.protocol("WM_DELETE_WINDOW", self.quit)
         # self.state('zoomed')
         self.config(menu=LedMenubar(self))
         self.title(info["programName"])
@@ -293,10 +264,17 @@ class App(Tk):
         self.canvasSize = Dimension(0, 0)
         self.ledCanvas = LedCanvas(self)
 
-        self.packEverything()
+        # Connection
+        self.queue = queue
+        self.transmitting = False
+        self.connection = ConsoleConn()
 
+        self.packEverything()
         self.setTool("add")
 
+        self.RUNNING = True
+
+    # Core functionality
     def packEverything(self, tb=True, sb=True):
         self.toolbar.pack_forget()
         self.sidebar.pack_forget()
@@ -306,6 +284,14 @@ class App(Tk):
         if sb: self.sidebar.pack()
         self.ledCanvas.pack(anchor=NW)
 
+    def transmit(self):
+        if self.transmitting:
+            try:
+                self.connection.transmit(self.queue.get_nowait())
+            except queue.Empty:
+                pass
+
+    # Button callback functions
     def openLayout(self):
         ans = filedialog.askopenfilename(parent=self, initialdir=os.getcwd(), title="Select Layout File",
                                          filetypes=[('LED Layout files', '.ledlayout'), ('JSON files', '.json'),
@@ -336,10 +322,6 @@ class App(Tk):
             print(e)
 
     def saveLayout(self):
-        class SaveDirNotSet(Exception):
-            """Save button is enables but save dir is not set"""
-            pass
-
         if self.saveDir != '':
             try:
                 self.ledList.save(self.canvasSize.x, self.canvasSize.y, self.saveDir)
@@ -373,7 +355,24 @@ class App(Tk):
             i['state'] = NORMAL
         self.sidebar.buttons[tool]['state'] = DISABLED
 
+    # Tk mainloop functions
+    def loop(self):
+        while self.RUNNING:
+            self.toolbar.transLog.set("Connection: " + self.connection.type + "\nQueue overload: "
+                                      + str(self.queue.qsize()))
+            self.transmit()
 
-if __name__ == "__main__":
-    app = App()
-    app.mainloop()
+            self.update()
+        self.cleanup()
+
+    def cleanup(self):
+        pass
+
+    def quit(self):
+        self.RUNNING = False
+        super().quit()
+
+
+def run(queue: Queue):
+    app = App(queue)
+    app.loop()

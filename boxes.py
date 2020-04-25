@@ -27,7 +27,7 @@ class ResponsiveBox(Spectrum):
     def render(self):
         size = int((self.size.x + 1) / 2)
         temp = Spectrum.render(self)[0]
-        res = [[0 for i in range(2 * size - 1)] for j in range(2 * size - 1)]
+        res = [[(0, 0, 0) for i in range(2 * size - 1)] for j in range(2 * size - 1)]
 
         size -= 1
         for n, i in enumerate(temp):
@@ -53,7 +53,7 @@ class ResponsiveStar(ResponsiveBox):
     def render(self):
         size = int((self.size.x + 1) / 2)
         temp = Spectrum.render(self)[0]
-        res = [[0 for i in range(2 * size - 1)] for j in range(2 * size - 1)]
+        res = [[(0, 0, 0) for i in range(2 * size - 1)] for j in range(2 * size - 1)]
 
         size -= 1
         for n, i in enumerate(temp):
@@ -73,7 +73,7 @@ class ResponsiveHelix(ResponsiveBox):
     def render(self):
         size = int((self.size.x + 1) / 2)
         temp = Spectrum.render(self)[0]
-        res = [[0 for i in range(2 * size - 1)] for j in range(2 * size - 1)]
+        res = [[(0, 0, 0) for i in range(2 * size - 1)] for j in range(2 * size - 1)]
 
         size -= 1
         pr = 0

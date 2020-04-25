@@ -43,6 +43,10 @@ class LedMenubar(Menu):
                                  command=self.toggleBar)
 
         connectmenu = Menu(self, tearoff=0)
+        connectmenu.add_command(label="Connect", command=nothing)
+        connectmenu.add_command(label="Start/Stop Stream", command=nothing)
+        connectmenu.add_separator()
+        connectmenu.add_command(label="Record...", command=nothing)
 
         helpmenu = Menu(self, tearoff=0)
         helpmenu.add_command(label="About...", command=self.showInfo)
@@ -53,7 +57,7 @@ class LedMenubar(Menu):
         self.add_cascade(label="Connection", menu=connectmenu)
         self.add_cascade(label="Help", menu=helpmenu)
 
-    def showInfo(self):
+    def showInfo(self, event=None):
         with open('ledScreenLayoutManager.info', 'r', encoding="utf8") as f:
             info = json.load(f)
 
@@ -115,16 +119,42 @@ class LedToolbar(Frame):
         connectBtn.image = connectImg
         connectBtn.pack(side=LEFT, pady=2, padx=2)
 
-        closeImg = PhotoImage(file="icons/Close.png")
-        closeBtn = Button(self, text="Close", image=closeImg, relief=FLAT, compound=TOP,
+        self.transmitImg = PhotoImage(file="icons/Registry.png")
+        self.transmitBtn = Button(self, text="Transmit", image=self.transmitImg, relief=FLAT, compound=TOP,
+                                  command=self.transmit)
+        self.transmitBtn.image = self.transmitImg
+        self.transmitBtn.pack(side=LEFT, pady=2, padx=2)
+
+        self.transLog = StringVar()
+        self.transLog.set("Queue Size")
+        Label(self, textvariable=self.transLog).pack(side=LEFT, pady=2, padx=2)
+
+        closImg = PhotoImage(file="icons/Close.png")
+        closeBtn = Button(self, text="Close", image=closImg, relief=FLAT, compound=TOP,
                           command=self.root.quit)
-        closeBtn.image = closeImg
+        closeBtn.image = closImg
         closeBtn.pack(side=RIGHT, pady=2, padx=4)
 
         Separator(self, orient=VERTICAL).pack(side=RIGHT, padx=4, fill=Y)
 
     def pack(self, *args, **kwargs):
         super().pack(side=TOP, fill=X, *args, **kwargs)
+
+    def transmit(self):
+        if self.root.transmitting:
+            self.root.transmitting = False
+            self.transmitImg = PhotoImage(file="icons/Registry.png")
+            self.transmitBtn['text'] = "Transmit"
+            self.transmitBtn['image'] = self.transmitImg
+            self.transmitBtn.image = self.transmitImg
+        else:
+            self.root.transmitting = True
+            self.transmitImg = PhotoImage(file="icons/Stop.png")
+            self.transmitBtn['text'] = "Stop"
+            self.transmitBtn['image'] = self.transmitImg
+            self.transmitBtn.image = self.transmitImg
+
+        self.transmitBtn.image = self.transmitImg
 
 
 class LedSidebar(Frame):
@@ -168,3 +198,37 @@ class LedSidebar(Frame):
 
     def pack(self, *args, **kwargs):
         super().pack(side=LEFT, fill=Y, *args, **kwargs)
+
+
+class VisualiserMenubar(Menu):
+    def __init__(self, root, *args, **kwargs):
+        super().__init__(root, *args, **kwargs)
+        self.root = root
+
+        filemenu = Menu(self, tearoff=0)
+        filemenu.add_command(label='New Window', command=nothing)
+        filemenu.add_command(label='Open Window...', command=nothing)
+        filemenu.add_command(label='Save Window As...', command=nothing)
+        filemenu.add_command(label='Save Window', command=nothing)
+        filemenu.add_separator()
+        filemenu.add_command(label='Quit', command=self.root.quit)
+
+        screensmenu = Menu(self, tearoff=0)
+        screensmenu.add_command(label="Add Screen...", command=self.root.addScreen)
+        removeScreenSubmenu = Menu(self)
+        screensmenu.add_cascade(label="Remove Screen", menu=removeScreenSubmenu)
+
+        helpmenu = Menu(self, tearoff=0)
+        helpmenu.add_command(label="About...", command=self.showInfo)
+
+        self.add_cascade(label="File", menu=filemenu)
+        self.add_cascade(label="Screens", menu=screensmenu)
+        self.add_command(label="Open Layout Manager...", command=self.root.openLayoutManager)
+        self.add_cascade(label="Help", menu=helpmenu)
+
+    def showInfo(self, event=None):
+        with open('visualiser.info', 'r', encoding="utf8") as f:
+            info = json.load(f)
+
+        messagebox.showinfo("About", info["programName"] + " v" + info["version"] + "\nCreated by " + info["author"] +
+                            " in " + info["year"] + ".\nLicenced under " + info["licence"])
