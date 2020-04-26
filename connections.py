@@ -19,3 +19,7 @@ class ConsoleConn(Connection):
 
     def setup(self):
         pass
+
+
+class NetworkConn(Connection):
+    type = "Network"
