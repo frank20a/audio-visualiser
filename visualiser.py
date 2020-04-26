@@ -110,7 +110,6 @@ class Window:
         self.size = self.width, self.height
 
         self.screen = pygame.display.set_mode(self.size, pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.RESIZABLE)
-        pygame.display.update()
 
 
 class Application(tk.Tk):
