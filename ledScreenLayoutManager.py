@@ -19,12 +19,6 @@ class Node:
         self.child = None
         self.pos = (posx, posy)
 
-    def setChild(self, value: tuple = (0, 0, 0)):
-        self.child = Node(value)
-
-    def setVal(self, value: tuple = (0, 0, 0)):
-        self.val = value
-
     def setPos(self, posx, posy):
         self.pos = (posx, posy)
 
@@ -128,8 +122,6 @@ class LedList:
         raise LedNotFound("Position: " + str(pos))
 
     def fill(self, pos: tuple):
-        print("Test")
-
         if pos in self.positions: raise LedAlreadyPresent
 
         if self.fillPos is None:
@@ -176,8 +168,9 @@ class LedCanvas(Canvas):
         self.delete(ALL)
 
         for i in range(1, self.root.canvasSize.x):
-            self.create_line(0, i * self.px, self.root.canvasSize.y * self.px + 2, i * self.px, fill="lightgrey")
-            self.create_line(i * self.px, 0, i * self.px, self.root.canvasSize.x * self.px + 2, fill="lightgrey")
+            self.create_line(i * self.px, 0, i * self.px, self.root.canvasSize.y * self.px + 2, fill="lightgrey")
+        for i in range(1, self.root.canvasSize.y):
+            self.create_line(0, i * self.px, self.root.canvasSize.x * self.px + 2, i * self.px, fill="lightgrey")
 
         if self.root.ledList.fillPos is not None: self.drawRec(self.root.ledList.fillPos, col='darkgrey')
 
@@ -194,10 +187,14 @@ class LedCanvas(Canvas):
 
     def drawRec(self, pos, col='blue'):
         if pos is None: raise NothingToDraw("Provided NoneType position. Can't draw there")
+
+        pos = pos[0], self.root.canvasSize.y - pos[1] - 1
         self.create_rectangle(pos[0] * self.px + 2, pos[1] * self.px + 2, (pos[0] + 1) * self.px - 2,
                               (pos[1] + 1) * self.px - 2, fill=col)
 
     def drawLine(self, pos1, pos2):
+        pos1 = pos1[0], self.root.canvasSize.y - pos1[1] - 1
+        pos2 = pos2[0], self.root.canvasSize.y - pos2[1] - 1
         self.create_line((pos1[0] + 0.5) * self.px, (pos1[1] + 0.5) * self.px, (pos2[0] + 0.5) * self.px,
                          (pos2[1] + 0.5) * self.px, fill="red", width=2)
 
@@ -222,7 +219,7 @@ class LedCanvas(Canvas):
             print(e)
 
     def clickCallback(self, event):
-        x, y = event.x // self.px, event.y // self.px
+        x, y = event.x // self.px, self.root.canvasSize.y - event.y // self.px - 1
 
         try:
             if self.root.tool == 'add':
@@ -267,7 +264,7 @@ class App(Tk):
         # Connection
         self.queue = queue
         self.transmitting = False
-        self.connection = ConsoleConn()
+        self.connection = ConsoleConn(self)
 
         self.packEverything()
         self.setTool("add")
