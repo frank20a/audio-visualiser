@@ -1,5 +1,3 @@
-
-
 class Connection:
     type = "None"
 

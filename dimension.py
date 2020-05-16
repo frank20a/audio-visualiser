@@ -9,3 +9,7 @@ class Dimension:
     def setDimension(self, s: tuple):
         self.x = s[0]
         self.y = s[1]
+
+    def __iter__(self):
+        yield self.x
+        yield self.y

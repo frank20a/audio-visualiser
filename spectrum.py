@@ -6,24 +6,29 @@ import audioInput
 from dimension import Dimension
 import settingsPanels as sp
 from colors import *
+from Exceptions import ConflictingSizes
 
 
 class Spectrum(Screen):
     number = 0
 
-    def __init__(self, audioDevice: audioInput.AudioInput, size: Dimension = Dimension(14, 20),
-                 pixel: Dimension = Dimension(25, 10), pxDist: int = 5, sens: float = 0.03, topDelay: int = 0):
+    def __init__(self, audioDevice: audioInput.AudioInput, size: Dimension = Dimension(31, 40), freqs: tuple = (),
+                 pixel: Dimension = Dimension(17, 7), pxDist: int = 5, sens: float = 0.05, topDelay: int = 0):
         self.name = self.__class__.__name__ + ' - ' + str(Spectrum.number)
         Spectrum.number += 1
 
+        # Audio setup
         self.audioDevice = audioDevice
-        self.findex = [0]
-        freqs = [30, 60, 90, 120, 170, 220, 410, 600, 800, 1000, 1500, 2000, 3750, 4500]
-        self.findex = self.findex + [self.audioDevice.indexFromFreq(f) for f in freqs]
+        if not freqs:
+            freqs = (2, 25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600,
+                     2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500, 16000, 20000)
+        if len(freqs) != size.x: raise ConflictingSizes("Number of bars and x-dimension are different")
+        self.findex = [self.audioDevice.indexFromFreq(f) for f in freqs]
 
+        # Screen attributes
         self.sens = sens
         self.topDelay = topDelay
-        Screen.__init__(self, size, pixel, pxDist)
+        super().__init__(size, pixel, pxDist)
         self.addBand()
         self.calcBars()
         self.changePalette("gradientBeat")
@@ -38,7 +43,7 @@ class Spectrum(Screen):
         # Beat Detection Variables
         self.beatDetectSensitivity = 2.2
         self.beatDetectThreshold = 12
-        self.beatDetectionBar = 3
+        self.beatDetectionBar = 6
         self.beatDetect = [0 for i in range(20)]
 
     def createSettings(self, parent) -> tk.Frame:
@@ -47,9 +52,14 @@ class Spectrum(Screen):
 
     def calcBars(self) -> None:
         self.findex.sort()
-        self.bar = []
-        for i in range(len(self.findex) - 1):
-            self.bar.append(self.sens * self.audioDevice.getSpectralBar(self.findex[i], self.findex[i + 1]))
+
+        # ========= DEPRECATED =========
+        # self.bar = []
+        # for i in range(len(self.findex) - 1):
+        #     self.bar.append(self.sens * self.audioDevice.getSpectralBar(self.findex[i], self.findex[i + 1]))
+        # ==============================
+
+        self.bar = [self.sens * self.audioDevice.getSpectralBar(i) for i in self.findex]
 
     def addBand(self, x=0) -> None:
         if x > 0: self.findex.append(self.audioDevice.indexFromFreq(x))
@@ -180,18 +190,22 @@ class Spectrum(Screen):
 
         return res
 
+    def cleanup(self):
+        print("Closed", self.name)
+
 
 class SpectrumLine(Spectrum):
     number = 0
 
-    def __init__(self, audioDevice: audioInput.AudioInput, freqRange: tuple = (90, 120), size: int = 40,
-                 pixel: Dimension = Dimension(15, 5), pxDist: int = 5, sens: float = 0.03, topDelay: int = 0,
+    def __init__(self, audioDevice: audioInput.AudioInput, freq: int = 100, size: int = 40,
+                 pixel: Dimension = Dimension(17, 7), pxDist: int = 5, sens: float = 0.05, topDelay: int = 0,
                  align: int = 0):
 
         self.align = align  # Align 0:Bottom, 1:Top, 2:Center
-        self.freqRage = freqRange
+        self.freq = freq
 
-        Spectrum.__init__(self, audioDevice, Dimension(1, size), pixel, pxDist, sens, topDelay)
+        super().__init__(audioDevice, freqs=(freq,), size=Dimension(1, size), pixel=pixel, pxDist=pxDist, sens=sens,
+                         topDelay=topDelay)
 
         self.beatDetectionBar = 0
 
@@ -210,12 +224,16 @@ class SpectrumLine(Spectrum):
 
         return res
 
-    def addBand(self, freqRange=None) -> None:
+    def addBand(self, freq: int = None) -> None:
+        if freq is None: return
+
+        self.freq = (freq)
+        print(self.freq)
+        self.findex = [self.audioDevice.indexFromFreq(self.freq)]
         self.tops = [[0, 0] for i in range((len(self.findex) - 1) * 2)]
-        if freqRange: self.freqRage = freqRange
 
-        self.findex = [self.audioDevice.indexFromFreq(self.freqRage[0]),
-                       self.audioDevice.indexFromFreq(self.freqRage[1])]
+    def getFreq(self) -> int:
+        return self.freq
 
-    def getFreqRange(self) -> tuple:
-        return self.freqRage
+    def cleanup(self):
+        print("Closed", self.name)

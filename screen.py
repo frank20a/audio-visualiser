@@ -20,3 +20,6 @@ class Screen():
 
     def createSettings(self, parent):
         raise NotImplementedError()
+
+    def cleanup(self):
+        raise NotImplementedError

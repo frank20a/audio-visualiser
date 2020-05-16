@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import *
-import customWidgets as cw
+import Widgets as cw
 
 
 class SpectrumMenu(tk.Frame):

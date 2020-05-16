@@ -5,9 +5,9 @@ import os
 from multiprocessing import Queue
 import queue
 
-from customMenus import LedMenubar, LedToolbar, LedSidebar
+from Menus import LedMenubar, LedToolbar, LedSidebar
 from dimension import Dimension
-from customExceptions import *
+from Exceptions import *
 from connections import ConsoleConn
 
 with open('ledScreenLayoutManager.info', 'r', encoding="utf8") as f:

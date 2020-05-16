@@ -9,12 +9,13 @@ from multiprocessing import Process, Queue
 import audioInput
 from spectrum import Spectrum, SpectrumLine
 from boxes import ResponsiveStar, ResponsiveBox, ResponsiveHelix
+from videoScreen import Video
 from colors import *
-import customWidgets as cw
-from customMenus import VisualiserMenubar
-from customDialogs import MyDialog
+import Widgets as cw
+from Menus import VisualiserMenubar
+from Dialogs import NewScreenDialog
 import ledScreenLayoutManager
-from customExceptions import *
+from Exceptions import *
 
 with open('ledScreenLayoutManager.info', 'r', encoding="utf8") as f:
     info = json.load(f)
@@ -68,6 +69,7 @@ class Window:
 
     def render(self, live: str):
         self.screen.fill(black)
+        liveData = None
 
         tempX = 0
         for i in self.screens:
@@ -90,9 +92,6 @@ class Window:
 
         return liveData
 
-    def cleanup(self):
-        pygame.quit()
-
     def execute(self, live: str):
         if self._running:
             for event in pygame.event.get():
@@ -110,6 +109,11 @@ class Window:
         self.size = self.width, self.height
 
         self.screen = pygame.display.set_mode(self.size, pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.RESIZABLE)
+
+    def cleanup(self):
+        for i in self.screens:
+            i.cleanup()
+        pygame.quit()
 
 
 class Application(tk.Tk):
@@ -164,8 +168,8 @@ class Application(tk.Tk):
         self._running = False
         self.destroy()
 
-    def addScreen(self, event=None):
-        cmd = MyDialog(self).show()
+    def addScreen(self):
+        cmd = NewScreenDialog(self).show()
         if cmd == "Spectrum":
             self.window.screens.append(Spectrum(self.window.audioDevice))
         elif cmd == "SpectrumLine":
@@ -176,6 +180,8 @@ class Application(tk.Tk):
             self.window.screens.append(ResponsiveBox(self.window.audioDevice))
         elif cmd == "ResponsiveHelix":
             self.window.screens.append(ResponsiveHelix(self.window.audioDevice))
+        elif cmd == "Video":
+            self.window.screens.append(Video())
 
         self.window.screens[-1].createSettings(self.SettingsContainer).grid(row=0, column=0)
         self.settingSelector.settingsSelectorCombo['values'] += (self.window.screens[-1].name,)
@@ -183,12 +189,12 @@ class Application(tk.Tk):
         self.window.updateSize()
         self.frame.config(width=self.window.width, height=self.window.height)
 
-    def openLayoutManager(self, event=None):
+    def openLayoutManager(self):
         if not self.managerProc.is_alive():
             self.managerProc.start()
 
 
 if __name__ == "__main__":
-    A = audioInput.AudioInput(4096, 96000, 4096, 1)
-    app = Application(Window(A, screens=(ResponsiveStar(A, size=15, topDelay=2),), fpsLimiter=1))
+    A = audioInput.AudioInput(4096, 96000, 4096 * 3, 1)
+    app = Application(Window(A, screens=(SpectrumLine(A),), fpsLimiter=1))
     app.open()

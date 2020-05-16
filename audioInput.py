@@ -18,8 +18,13 @@ class AudioInput:
         self.stream = self.p.open(format=pyaudio.paInt16, channels=1, rate=self.Fs, input=True, output=False,
                                   frames_per_buffer=self.chunk, input_device_index=2)
 
-    def getSpectralBar(self, i1, i2):
-        return sum(np.abs(self.SIG[i1:i2])) / np.abs((i2 - i1))
+    # ========= DEPRECATED =========
+    # def getSpectralBar(self, i1, i2):
+    #     return sum(np.abs(self.SIG[i1:i2])) / np.abs((i2 - i1))
+    # ==============================
+
+    def getSpectralBar(self, i):
+        return np.abs(self.SIG)[i]
 
     def indexFromFreq(self, F):
         return floor(F * self.Nfft / self.Fs)

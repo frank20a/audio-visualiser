@@ -48,6 +48,9 @@ class ResponsiveBox(Spectrum):
     def getFreqRange(self) -> tuple:
         return self.freqRage
 
+    def cleanup(self):
+        print("Closed", self.name)
+
 
 class ResponsiveStar(ResponsiveBox):
     def render(self):
@@ -67,6 +70,9 @@ class ResponsiveStar(ResponsiveBox):
             res[size + n][size - n] = i
 
         return res
+
+    def cleanup(self):
+        print("Closed", self.name)
 
 
 class ResponsiveHelix(ResponsiveBox):
@@ -91,3 +97,6 @@ class ResponsiveHelix(ResponsiveBox):
             pr = int(n * sin(pi * n / size))
 
         return res
+
+    def cleanup(self):
+        print("Closed", self.name)
