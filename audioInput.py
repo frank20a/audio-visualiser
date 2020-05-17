@@ -15,7 +15,7 @@ class AudioInput:
         self.SIG = np.zeros(self.Nfft)
 
         self.p = pyaudio.PyAudio()
-        self.stream = self.p.open(format=pyaudio.paInt16, channels=1, rate=self.Fs, input=True, output=False,
+        self.stream = self.p.open(format=pyaudio.paFloat32, channels=1, rate=self.Fs, input=True, output=False,
                                   frames_per_buffer=self.chunk, input_device_index=2)
 
     # ========= DEPRECATED =========
@@ -56,7 +56,8 @@ class AudioInput:
 
     def getData(self):
         data = self.stream.read(self.chunk, exception_on_overflow=False)
-        self.sig = np.array(struct.unpack(str(self.chunk) + 'h', data))[::self.res] / 32767
+        # self.sig = np.array(struct.unpack(str(self.chunk) + 'h', data))[::self.res] / 32767
+        self.sig = np.frombuffer(data, dtype=np.float32)[::self.res]
         # self.BlackmanHarris()
         self.SIG = fft(self.sig, self.Nfft)
 
