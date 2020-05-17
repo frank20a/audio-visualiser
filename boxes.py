@@ -10,12 +10,12 @@ from math import exp, sin, pi
 class ResponsiveBox(Spectrum):
     number = 0
 
-    def __init__(self, audioDevice: audioInput.AudioInput, freqRange: tuple = (90, 120), size: int = 10,
+    def __init__(self, audioDevice: audioInput.AudioInput, freq: int = 100, size: int = 10,
                  pixel: int = 10, pxDist: int = 0, sens: float = 0.03, topDelay: int = 0):
-        self.freqRage = freqRange
+        self.freq = freq
 
-        Spectrum.__init__(self, audioDevice, Dimension(2 * size - 1, 2 * size - 1), Dimension(pixel, pixel), pxDist,
-                          sens, topDelay)
+        Spectrum.__init__(self, audioDevice, size=Dimension(2 * size - 1, 2 * size - 1), pixel=Dimension(pixel, pixel),
+                          pxDist=pxDist, sens=sens, topDelay=topDelay)
 
         self.barLength = size
         self.beatDetectionBar = 0
@@ -39,14 +39,15 @@ class ResponsiveBox(Spectrum):
 
         return res
 
-    def addBand(self, freqRange=None):
-        self.tops = [[0, 0] for i in range((len(self.findex) - 1) * 2)]
-        if freqRange: self.freqRage = freqRange
-        self.findex = [self.audioDevice.indexFromFreq(self.freqRage[0]),
-                       self.audioDevice.indexFromFreq(self.freqRage[1])]
+    def addBand(self, freq: int = None) -> None:
+        if freq is None: return
 
-    def getFreqRange(self) -> tuple:
-        return self.freqRage
+        self.freq = (freq)
+        self.findex = [self.audioDevice.indexFromFreq(self.freq)]
+        self.tops = [[0, 0] for i in range((len(self.findex) - 1) * 2)]
+
+    def getFreq(self) -> tuple:
+        return self.freq
 
     def cleanup(self):
         print("Closed", self.name)

@@ -196,5 +196,5 @@ class Application(tk.Tk):
 
 if __name__ == "__main__":
     A = audioInput.AudioInput(4096, 96000, 4096 * 3, 1)
-    app = Application(Window(A, screens=(SpectrumLine(A),), fpsLimiter=1))
+    app = Application(Window(A, screens=(Spectrum(A),), fpsLimiter=1))
     app.open()

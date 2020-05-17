@@ -22,7 +22,6 @@ class Spectrum(Screen):
         if not freqs:
             freqs = (2, 25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600,
                      2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500, 16000, 20000)
-        if len(freqs) != size.x: raise ConflictingSizes("Number of bars and x-dimension are different")
         self.findex = [self.audioDevice.indexFromFreq(f) for f in freqs]
 
         # Screen attributes
@@ -64,7 +63,7 @@ class Spectrum(Screen):
     def addBand(self, x=0) -> None:
         if x > 0: self.findex.append(self.audioDevice.indexFromFreq(x))
         self.tops = [[0, 0] for i in range((len(self.findex) - 1) * 2)]
-        self.updateSize(size=Dimension(len(self.findex) - 1, self.size.y))
+        self.updateSize(size=Dimension(len(self.findex), self.size.y))
 
     def beatDetectColour(self) -> list:
         self.beatDetect.insert(0, self.bar[self.beatDetectionBar])
@@ -188,6 +187,7 @@ class Spectrum(Screen):
 
             res.append(t)
 
+        # if len(res) != self.size.x:raise ConflictingSizes("Number of bars and x-dimension are different")
         return res
 
     def cleanup(self):
@@ -204,7 +204,7 @@ class SpectrumLine(Spectrum):
         self.align = align  # Align 0:Bottom, 1:Top, 2:Center
         self.freq = freq
 
-        super().__init__(audioDevice, freqs=(freq,), size=Dimension(1, size), pixel=pixel, pxDist=pxDist, sens=sens,
+        super().__init__(audioDevice, size=Dimension(1, size), pixel=pixel, pxDist=pxDist, sens=sens,
                          topDelay=topDelay)
 
         self.beatDetectionBar = 0
@@ -228,7 +228,6 @@ class SpectrumLine(Spectrum):
         if freq is None: return
 
         self.freq = (freq)
-        print(self.freq)
         self.findex = [self.audioDevice.indexFromFreq(self.freq)]
         self.tops = [[0, 0] for i in range((len(self.findex) - 1) * 2)]
 
