@@ -17,7 +17,7 @@ from Dialogs import NewScreenDialog
 import ledScreenLayoutManager
 from Exceptions import *
 
-with open('ledScreenLayoutManager.info', 'r', encoding="utf8") as f:
+with open('visualiser.info', 'r', encoding="utf8") as f:
     info = json.load(f)
 
 

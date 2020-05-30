@@ -6,9 +6,10 @@ from multiprocessing import Queue
 import queue
 
 from Menus import LedMenubar, LedToolbar, LedSidebar
+from Dialogs import ChooseConnDialog
 from dimension import Dimension
 from Exceptions import *
-from connections import ConsoleConn
+import connections as conn
 
 with open('ledScreenLayoutManager.info', 'r', encoding="utf8") as f:
     info = json.load(f)
@@ -135,7 +136,7 @@ class LedList:
                 step = +1
 
             for i in range(self.fillPos[1], pos[1] + step, step):
-                print(pos[0], i)
+                # print(pos[0], i)
                 self.add(Node(pos[0], i))
         elif self.fillPos[1] == pos[1]:
             if self.fillPos[0] > pos[0]:
@@ -264,7 +265,8 @@ class App(Tk):
         # Connection
         self.queue = queue
         self.transmitting = False
-        self.connection = ConsoleConn(self)
+        self.connection = conn.Shredder(self)
+        self.toolbar.transmit()
 
         self.packEverything()
         self.setTool("add")
@@ -352,6 +354,9 @@ class App(Tk):
             i['state'] = NORMAL
         self.sidebar.buttons[tool]['state'] = DISABLED
 
+    def connect(self):
+        self.connection = [conn.Shredder, conn.ConsoleConn, conn.SerialConn, conn.NetworkConn][ChooseConnDialog(self).show()](self)
+
     # Tk mainloop functions
     def loop(self):
         while self.RUNNING:
@@ -372,4 +377,9 @@ class App(Tk):
 
 def run(queue: Queue):
     app = App(queue)
+    app.loop()
+
+
+if __name__ == "__main__":
+    app = App(Queue())
     app.loop()

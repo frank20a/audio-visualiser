@@ -1,3 +1,7 @@
+from serial import Serial
+from Dialogs import SerialConnDialog
+from Exceptions import ConnectionInterrupted
+
 class Connection:
     type = "None"
 
@@ -20,6 +24,16 @@ class Connection:
         return res
 
 
+class Shredder(Connection):
+    type = "Shredder"
+
+    def transmit(self, data):
+        pass
+
+    def setup(self):
+        pass
+
+
 class ConsoleConn(Connection):
     type = "Console"
 
@@ -30,5 +44,25 @@ class ConsoleConn(Connection):
         pass
 
 
+class SerialConn(Connection):
+    type = "Serial"
+
+    def transmit(self, data):
+        for i in self.process(data):
+            self.ser.write(i)
+        if self.ser.read().decode() != '#': raise(ConnectionInterrupted)
+
+    def setup(self):
+        import serial.tools.list_ports
+
+        resp = SerialConnDialog(self.parent, serial.tools.list_ports.comports()).show()
+        self.ser = Serial(resp[0], int(resp[1]))
+        print(self.ser.readline().decode())
+
+
 class NetworkConn(Connection):
     type = "Network"
+
+
+if __name__ == "__main__":
+    A = SerialConn(None)

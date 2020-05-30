@@ -115,7 +115,7 @@ class LedToolbar(Frame):
 
         connectImg = PhotoImage(file="icons/Monitors.png")
         connectBtn = Button(self, text="Connect", image=connectImg, relief=FLAT, compound=TOP,
-                            command=nothing)
+                            command=self.root.connect)
         connectBtn.image = connectImg
         connectBtn.pack(side=LEFT, pady=2, padx=2)
 

@@ -41,3 +41,7 @@ class SaveDirNotSet(Exception):
 class ConflictingSizes(Exception):
     """Size of Screen conflicts with size of an attribute"""
     pass
+
+class ConnectionInterrupted(Exception):
+    """Connection with Serial or TCP Client has been interrupdet"""
+    pass
