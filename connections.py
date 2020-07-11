@@ -50,14 +50,17 @@ class SerialConn(Connection):
     def transmit(self, data):
         for i in self.process(data):
             self.ser.write(i)
-        if self.ser.read().decode() != '#': raise(ConnectionInterrupted)
+        # if self.ser.read().decode() != '#': raise(ConnectionInterrupted)
 
     def setup(self):
         import serial.tools.list_ports
 
-        resp = SerialConnDialog(self.parent, serial.tools.list_ports.comports()).show()
-        self.ser = Serial(resp[0], int(resp[1]))
-        print(self.ser.readline().decode())
+        try:
+            resp = SerialConnDialog(self.parent, serial.tools.list_ports.comports()).show()
+            self.ser = Serial(resp[0], int(resp[1]))
+            print(self.ser.readline().decode())
+        except IndexError: print("Closed unexpectedly")
+        except Exception as e: print(e)
 
 
 class NetworkConn(Connection):

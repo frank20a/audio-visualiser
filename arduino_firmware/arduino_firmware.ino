@@ -9,7 +9,7 @@ CRGB leds[NUM_LEDS];
 void setup() {
   FastLED.addLeds<LED_TYPE, PIN>(leds, NUM_LEDS);
   
-  Serial.begin(250000);
+  Serial.begin(500000);
   pinMode(12, OUTPUT);
   Serial.println("Arduino say HELLO");
 }
@@ -28,7 +28,7 @@ void get_vals(){
     leds[i].g = temp[1];
     leds[i].b = temp[2];
   }
-  Serial.write('#');
+//  Serial.write('#');
 }
 
 //void clear(){

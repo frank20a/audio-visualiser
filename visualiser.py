@@ -101,14 +101,18 @@ class Window:
         else:
             self.cleanup()
 
-    def updateSize(self):
+    def updateSize(self, parent):
         self.width, self.height = (len(self.screens) - 1) * 10, 0
         for i in self.screens:
             self.width += i.resolution.x
             self.height = max(self.height, i.resolution.y)
+
+        self.width, self.height = max(self.width, 125), max(self.height, 40)
         self.size = self.width, self.height
 
-        self.screen = pygame.display.set_mode(self.size, pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.RESIZABLE)
+        self.screen = pygame.display.set_mode(self.size, pygame.HWSURFACE | pygame.DOUBLEBUF)
+
+        parent.frame.config(width=self.width, height=self.height)
 
     def cleanup(self):
         for i in self.screens:
@@ -122,7 +126,6 @@ class Application(tk.Tk):
         tk.Tk.__init__(self, *args, **kwargs)
         self.protocol("WM_DELETE_WINDOW", self.quit)
         self.title(info['programName'])
-        self.config(menu=VisualiserMenubar(self))
         self._running = True
 
         # Define LED Screen Layout module
@@ -139,12 +142,15 @@ class Application(tk.Tk):
         # Settings Panel
         self.settingSelector = cw.SettingsPanel(self, self.window)
         self.settingSelector.pack(fill=X)
-        self.SettingsContainer = tk.Frame(self)
+        self.SettingsContainer = cw.FrameWithWin(self, self.window)
         self.SettingsContainer.pack(fill=BOTH, expand=YES)
+        self.config(menu=VisualiserMenubar(self))
+        self.settingsPannels = []
 
         # Create all the Frames for the settings panels
         for n, i in enumerate(self.window.screens):
-            i.createSettings(self.SettingsContainer).grid(row=0, column=0)
+            self.settingsPannels.append(i.createSettings(self.SettingsContainer))
+            self.settingsPannels[-1].grid(row=0, column=0)
         self.settingSelector.selectSettingPanel()
 
     def open(self):
@@ -183,11 +189,27 @@ class Application(tk.Tk):
         elif cmd == "Video":
             self.window.screens.append(Video())
 
-        self.window.screens[-1].createSettings(self.SettingsContainer).grid(row=0, column=0)
-        self.settingSelector.settingsSelectorCombo['values'] += (self.window.screens[-1].name,)
-        self.settingSelector.selectSettingPanel()
-        self.window.updateSize()
-        self.frame.config(width=self.window.width, height=self.window.height)
+        self.settingsPannels.append(self.window.screens[-1].createSettings(self.SettingsContainer))
+        self.settingsPannels[-1].grid(row=0, column=0)
+
+        self.settingSelector.setCombobox()
+
+        self.window.updateSize(self)
+        self.config(menu=VisualiserMenubar(self))
+
+        print("Created", self.window.screens[-1].name)
+
+    def rmvScreen(self, screen):
+        screen.cleanup()
+        t = self.window.screens.index(screen)
+        self.settingsPannels[t].destroy()
+        self.settingsPannels.pop(t)
+        self.window.screens.pop(t)
+
+        self.settingSelector.setCombobox()
+
+        self.window.updateSize(self)
+        self.config(menu=VisualiserMenubar(self))
 
     def openLayoutManager(self):
         if not self.managerProc.is_alive():

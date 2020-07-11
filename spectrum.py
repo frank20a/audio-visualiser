@@ -28,6 +28,8 @@ class Spectrum(Screen):
         # Screen attributes
         self.sens = sens
         self.topDelay = topDelay
+        self.topFrameDrop = 1
+        self.fillDelay = False
         super().__init__(size, pixel, pxDist)
         self.addBand()
         self.calcBars()
@@ -50,6 +52,15 @@ class Spectrum(Screen):
         self.settings = sp.SpectrumMenu(parent, self)
         return self.settings
 
+    def changeSize(self, size) -> None:
+        self.updateSize(size=size)
+
+    def changePixel(self, size) -> None:
+        self.updateSize(pixel=size)
+
+    def changeDist(self, size) -> None:
+        self.updateSize(pxDist=size)
+
     def calcBars(self) -> None:
         self.findex.sort()
 
@@ -59,15 +70,18 @@ class Spectrum(Screen):
         #     self.bar.append(self.sens * self.audioDevice.getSpectralBar(self.findex[i], self.findex[i + 1]))
         # ==============================
 
-        self.bar = [self.sens * self.audioDevice.getSpectralBar(i) for i in self.findex]
+        self.bar = [self.sens * self.audioDevice.getSpectralBar(i) for i in self.findex][:self.size.x]
 
     def addBand(self, x=0) -> None:
         if x > 0: self.findex.append(self.audioDevice.indexFromFreq(x))
-        self.tops = [[0, 0] for i in range((len(self.findex) - 1) * 2)]
+        self.tops = [[0, 0] for i in range(len(self.findex))]
         self.updateSize(size=Dimension(len(self.findex), self.size.y))
 
     def beatDetectColour(self) -> list:
-        self.beatDetect.insert(0, self.bar[self.beatDetectionBar])
+        try:
+            self.beatDetect.insert(0, self.bar[self.beatDetectionBar])
+        except IndexError:
+            self.beatDetect.insert(0, self.bar[self.size.x - 1])
         self.beatDetect.pop()
 
         if self.beatDetect[0] > sum(self.beatDetect) / len(self.beatDetect) * self.beatDetectSensitivity and \
@@ -177,13 +191,17 @@ class Spectrum(Screen):
             for j in range(min(int(i) + 1, self.barLength)): t[j] = col[j]
 
             if self.topDelay > 0:
+
                 if i > self.tops[n][0]:
                     self.tops[n][0] = min(int(i), self.barLength)
                     self.tops[n][1] = 0
-                if self.tops[n][1] % self.topDelay == 0: self.tops[n][0] -= 1
+                if self.tops[n][1] % self.topDelay == 0: self.tops[n][0] -= self.topFrameDrop
                 if self.tops[n][0] >= 0:
                     topos = min(self.tops[n][0] + 1, self.barLength - 1)
-                    t[topos] = col[topos]
+                    if self.fillDelay:
+                        for j in range(min(topos, self.barLength)): t[j] = col[j]
+                    else:
+                        t[topos] = col[topos]
                     self.tops[n][1] += 1
 
             res.append(t)
@@ -215,6 +233,7 @@ class SpectrumLine(Spectrum):
         return self.settings
 
     def render(self) -> list:
+
         res = Spectrum.render(self)
         if self.align == 1: res[0] = res[0][::-1]
         if self.align == 2:
@@ -230,10 +249,10 @@ class SpectrumLine(Spectrum):
 
         self.freq = (freq)
         self.findex = [self.audioDevice.indexFromFreq(self.freq)]
-        self.tops = [[0, 0] for i in range((len(self.findex) - 1) * 2)]
+        self.tops = [[0, 0]]
 
     def getFreq(self) -> int:
         return self.freq
 
-    def cleanup(self):
-        print("Closed", self.name)
+    def changeSize(self, size) -> None:
+        self.updateSize(size=Dimension(1, size))

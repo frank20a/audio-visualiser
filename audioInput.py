@@ -16,7 +16,7 @@ class AudioInput:
 
         self.p = pyaudio.PyAudio()
         self.stream = self.p.open(format=pyaudio.paFloat32, channels=1, rate=self.Fs, input=True, output=False,
-                                  frames_per_buffer=self.chunk, input_device_index=2)
+                                  frames_per_buffer=self.chunk, input_device_index=4)
 
     # ========= DEPRECATED =========
     # def getSpectralBar(self, i1, i2):

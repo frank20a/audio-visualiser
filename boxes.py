@@ -10,7 +10,7 @@ from math import exp, sin, pi
 class ResponsiveBox(Spectrum):
     number = 0
 
-    def __init__(self, audioDevice: audioInput.AudioInput, freq: int = 100, size: int = 10,
+    def __init__(self, audioDevice: audioInput.AudioInput, freq: int = 100, size: int = 15,
                  pixel: int = 10, pxDist: int = 0, sens: float = 0.03, topDelay: int = 0):
         self.freq = freq
 

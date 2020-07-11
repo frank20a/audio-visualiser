@@ -9,7 +9,7 @@ class Screen():
         self.settings = None
 
     def render(self):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def updateSize(self, size: Dimension = None, pixel: Dimension = None, pxDist: int = None):
         if size is not None: self.size = size
@@ -19,7 +19,7 @@ class Screen():
                                     self.size.y * (self.pixel.y + self.pxDist) - self.pxDist)
 
     def createSettings(self, parent):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def cleanup(self):
         raise NotImplementedError

@@ -46,7 +46,7 @@ class SerialConnDialog(Toplevel):
         Label(self, text="Select Serial Communication Device").pack(anchor=NW, pady=20, padx=10)
         self.combo = Combobox(self, values=[str(i) for i in COMs])
         self.combo.pack(padx=10, fill=X)
-        self.combo.current(1)
+        self.combo.current(len(COMs)-1)
 
         Label(self, text="Select Baudrate").pack(anchor=NW, pady=20, padx=10)
         self.combo1 = Combobox(self, values=[300, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 74880, 115200, 230400,

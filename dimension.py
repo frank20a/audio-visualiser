@@ -10,6 +10,9 @@ class Dimension:
         self.x = s[0]
         self.y = s[1]
 
+    def inverse(self):
+        return Dimension(self.y, self.x)
+
     def __iter__(self):
         yield self.x
         yield self.y

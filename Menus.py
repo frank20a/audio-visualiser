@@ -1,6 +1,7 @@
 from tkinter.ttk import *
 from tkinter import *
 from tkinter import messagebox
+from functools import partial
 import json
 
 
@@ -213,8 +214,10 @@ class VisualiserMenubar(Menu):
 
         screensmenu = Menu(self, tearoff=0)
         screensmenu.add_command(label="Add Screen...", command=self.root.addScreen)
-        removeScreenSubmenu = Menu(self)
+        removeScreenSubmenu = Menu(self, tearoff=0)
         screensmenu.add_cascade(label="Remove Screen", menu=removeScreenSubmenu)
+        for i in self.root.window.screens:
+            removeScreenSubmenu.add_command(label=i.name, command=partial(self.root.rmvScreen, i))
 
         helpmenu = Menu(self, tearoff=0)
         helpmenu.add_command(label="About...", command=self.showInfo)

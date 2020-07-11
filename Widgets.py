@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import *
+from dimension import Dimension
 
 
 class SettingsPanel(tk.Frame):
@@ -27,6 +28,15 @@ class SettingsPanel(tk.Frame):
 
         self.liveBtn['value'] = self.settingsSelectorCombo.get()
 
+    def setCombobox(self):
+        self.settingsSelectorCombo.delete(0, END)
+        self.settingsSelectorCombo['values'] = tuple([i.name for i in self.window.screens])
+        if len(self.window.screens) != 0:
+            self.settingsSelectorCombo.current(0)
+            self.selectSettingPanel()
+        else:
+            print("No screens")
+
 
 class ColourModeSettings(tk.Frame):
     def __init__(self, parent, screen):
@@ -34,20 +44,35 @@ class ColourModeSettings(tk.Frame):
 
         self.screen = screen
 
+        def limit(*args):
+            temp = col1.get()
+            if len(temp) > 6: col1.set(temp[:6])
+            temp = col2.get()
+            if len(temp) > 6: col2.set(temp[:6])
+
+        col1 = StringVar()
+        col1.trace('w', limit)
+        col2 = StringVar()
+        col2.trace('w', limit)
+
         tk.Label(self, text="Change Colour Mode").pack(side=LEFT, fill=X)
         self.colourCombo = ttk.Combobox(self, values=["peaking", "beat", "gradient", "cross", "gradientCross",
                                                       "gradientBeat"])
-        self.colourCombo.pack(side=LEFT, fill=X)
+        self.colourCombo.pack(side=LEFT, padx=20)
         self.colourCombo.current(5)
         self.colourCombo.bind("<<ComboboxSelected>>", self.ColourModeSelected)
-        self.colour1 = tk.Text(self, width=6, height=1)
+
+        Label(self, text="#").pack(side=LEFT)
+        self.colour1 = tk.Entry(self, textvariable=col1, width=6)
         self.colour1.insert(tk.END, "000000")
         self.colour1.bind("<KeyRelease>", self.ColourModeSelected)
-        self.colour1.pack(side=RIGHT, expand=YES, fill=X, padx=10)
-        self.colour2 = tk.Text(self, width=6, height=1)
+        self.colour1.pack(side=LEFT)
+
+        Label(self, text="#").pack(side=LEFT)
+        self.colour2 = tk.Entry(self, textvariable=col2, width=6)
         self.colour2.insert(tk.END, "000000")
         self.colour2.bind("<KeyRelease>", self.ColourModeSelected)
-        self.colour2.pack(side=RIGHT, expand=YES, fill=X, padx=10)
+        self.colour2.pack(side=LEFT)
 
     def ColourModeSelected(self, event):
         try:
@@ -67,25 +92,78 @@ class DelaySettings(tk.Frame):
         self.screen = screen
 
         self.delayVar = IntVar()
-        self.delayCheck = tk.Checkbutton(self, text="Delay Tops", variable=self.delayVar, command=self.changeDelay)
+        self.delayCheck = tk.Checkbutton(self, text="Delay Tops     ", variable=self.delayVar,
+                                         command=self.delayBtnHandler)
         self.delayCheck.grid(row=0, column=0, columnspan=2, sticky=W)
+        if self.screen.topDelay > 0: self.delayCheck.invoke()
+
         self.delayValText = tk.Text(self, width=2, height=1)
         self.delayValText.bind("<KeyRelease>", self.changeDelay)
         self.delayValText.grid(row=0, column=2, sticky=W)
         self.delayValText.insert(tk.END, str(self.screen.topDelay))
+        self.lbl1 = Label(self, text='Delay Time     ')
+        self.lbl1.grid(row=0, column=3, sticky=W)
+
+        self.delayDropFrameText = tk.Text(self, width=2, height=1)
+        self.delayDropFrameText.bind("<KeyRelease>", self.changeDelay)
+        self.delayDropFrameText.grid(row=0, column=4, sticky=W)
+        self.delayDropFrameText.insert(tk.END, "1")
+        self.lbl2 = Label(self, text='Drop Frames     ')
+        self.lbl2.grid(row=0, column=5, sticky=W)
+
+        self.fillDelayVar = IntVar()
+        self.delayFillCheck = tk.Checkbutton(self, text="Fill Delay     ", variable=self.fillDelayVar,
+                                             command=self.fillDelay)
+        self.delayFillCheck.grid(row=0, column=6, columnspan=2, sticky=W)
         if self.screen.topDelay > 0: self.delayCheck.invoke()
 
-    def changeDelay(self, event=None):
-        if self.delayVar.get():
-            t = int(self.delayValText.get("1.0", "end-1c"))
-            if t > 0:
-                self.screen.topDelay = t
-            else:
-                self.delayValText.delete('1.0', tk.END)
-                self.delayValText.insert(tk.END, "1")
-                self.screen.topDelay = 1
+        self.delayBtnHandler()
+
+    def delayBtnHandler(self, event=None):
+        t = self.delayVar.get()
+        if t:
+            self.delayValText["state"] = "normal"
+            self.delayDropFrameText["state"] = "normal"
+            self.delayFillCheck["state"] = "normal"
+            self.lbl2["state"] = "normal"
+            self.lbl1["state"] = "normal"
+            self.changeDelay()
         else:
+            self.delayValText["state"] = "disabled"
+            self.delayDropFrameText["state"] = "disabled"
+            self.delayFillCheck["state"] = "disabled"
+            self.lbl2["state"] = "disabled"
+            self.lbl1["state"] = "disabled"
             self.screen.topDelay = 0
+            self.screen.topFrameDrop = 1
+
+    def changeDelay(self, event=None):
+        t = int(self.delayValText.get("1.0", "end-1c"))
+        if t > 0:
+            self.screen.topDelay = t
+        else:
+            self.delayValText.delete('1.0', tk.END)
+            self.delayValText.insert(tk.END, "1")
+            self.screen.topDelay = 1
+
+        t = int(self.delayDropFrameText.get("1.0", "end-1c"))
+        if t > 0:
+            self.screen.topFrameDrop = t
+        else:
+            self.delayDropFrameText.delete('1.0', tk.END)
+            self.delayDropFrameText.insert(tk.END, "1")
+            self.screen.topFrameDrop = 1
+
+    def fillDelay(self, event=None):
+        t = self.fillDelayVar.get()
+        self.screen.fillDelay = t
+        self.delayDropFrameText.delete('1.0', END)
+
+        if t:
+            self.delayDropFrameText.insert(tk.END, "3")
+        else:
+            self.delayDropFrameText.insert(tk.END, "1")
+        self.changeDelay()
 
 
 class SensitivitySettings(tk.Frame):
@@ -202,3 +280,68 @@ class BarFreqSettings(tk.Frame):
 
     def changeFreqs(self):
         self.screen.addBand(int(self.freq1.get("1.0", "end-1c")))
+
+
+class DimensionChangeSettings(tk.Frame):
+    def __init__(self, parent, screen, callback, placeholder: Dimension = Dimension(0, 0), title: str = "",
+                 xLim=float('inf'), yLim=float('inf'), secondDimension=True):
+        tk.Frame.__init__(self, parent)
+        self.screen = screen
+        self.callback = callback
+        self.parent = parent
+        self.second = secondDimension
+
+        def limit(*args):
+            temp = self.xVar.get()
+            if temp == '': temp = "0"
+            if not temp.isalnum(): self.xVar.set(temp[:-1])
+            if int(temp) > xLim: self.xVar.set(str(xLim))
+            temp = self.yVar.get()
+            if secondDimension and temp == '': temp = "0"
+            if secondDimension and not temp.isalnum(): self.yVar.set(temp[:-1])
+            if secondDimension and int(temp) > yLim: self.yVar.set(str(yLim))
+        self.xVar = StringVar()
+        self.yVar = StringVar()
+        try:
+            self.xVar.set(str(placeholder.x))
+            self.yVar.set(str(placeholder.y))
+        except AttributeError:
+            self.xVar.set(str(placeholder))
+            self.yVar.set('-')
+        self.xVar.trace('w', limit)
+        self.yVar.trace('w', limit)
+
+        tk.Label(self, text=title).grid(column=0, row=0, padx=10)
+
+        tk.Label(self, text="X:").grid(column=1, row=0)
+        self.x = Entry(self, textvariable=self.xVar, width=5)
+        self.x.grid(column=2, row=0, padx=5)
+        tk.Label(self, text="Y:").grid(column=3, row=0)
+        self.y = Entry(self, textvariable=self.yVar, width=5)
+        self.y.grid(column=4, row=0, padx=5)
+        if not secondDimension: self.y.config(state='disabled')
+        Button(self, text="Set", command=self.set).grid(column=5, row=0, padx=15)
+
+    def set(self, event=None):
+        if self.second:
+            try: x = int(self.xVar.get())
+            except ValueError: x = 0
+
+            try: y = int(self.yVar.get())
+            except ValueError: y = 0
+
+            self.callback(Dimension(x, y))
+        else:
+            try: x = int(self.xVar.get())
+            except ValueError: x = 0
+
+            self.callback(x)
+
+        self.parent.parent.window.updateSize(self.parent.parent.parent)
+
+
+class FrameWithWin(tk.Frame):
+    def __init__(self, parent, window):
+        tk.Frame.__init__(self, parent)
+        self.parent = parent
+        self.window = window
