@@ -4,6 +4,13 @@ from tkinter import *
 from dimension import Dimension
 
 
+class FrameWithWin(tk.Frame):
+    def __init__(self, parent, window):
+        tk.Frame.__init__(self, parent)
+        self.parent = parent
+        self.window = window
+
+
 class SettingsPanel(tk.Frame):
     def __init__(self, parent, window):
         tk.Frame.__init__(self, parent)
@@ -74,14 +81,14 @@ class ColourModeSettings(tk.Frame):
         self.colour2.bind("<KeyRelease>", self.ColourModeSelected)
         self.colour2.pack(side=LEFT)
 
-    def ColourModeSelected(self, event):
+    def ColourModeSelected(self, event=None):
         try:
-            c1 = self.colour1.get("1.0", "end-1c")
+            c1 = self.colour1.get()
             c1 = (int(c1[0:2], 16), int(c1[2:4], 16), int(c1[4:6], 16))
-            c2 = self.colour2.get("1.0", "end-1c")
+            c2 = self.colour2.get()
             c2 = (int(c2[0:2], 16), int(c2[2:4], 16), int(c2[4:6], 16))
             self.screen.changePalette(self.colourCombo.get(), c1, c2)
-        except:
+        except ValueError:
             pass
 
 
@@ -271,7 +278,7 @@ class BarFreqSettings(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.screen = screen
 
-        tk.Label(self, text="Frequency: ").grid(column=0, row=0, padx=10)
+        tk.Label(self, text="Frequency: ").grid(column=0, row=0)
         self.freq1 = tk.Text(self, width=6, height=1)
         self.freq1.insert(tk.END, str(self.screen.getFreq()))
         self.freq1.grid(column=1, row=0)
@@ -311,15 +318,15 @@ class DimensionChangeSettings(tk.Frame):
         self.xVar.trace('w', limit)
         self.yVar.trace('w', limit)
 
-        tk.Label(self, text=title).grid(column=0, row=0, padx=10)
+        tk.Label(self, text=title).grid(column=0, row=0)
 
         tk.Label(self, text="X:").grid(column=1, row=0)
-        self.x = Entry(self, textvariable=self.xVar, width=5)
-        self.x.grid(column=2, row=0, padx=5)
+        x = Entry(self, textvariable=self.xVar, width=5)
+        x.grid(column=2, row=0, padx=5)
         tk.Label(self, text="Y:").grid(column=3, row=0)
-        self.y = Entry(self, textvariable=self.yVar, width=5)
-        self.y.grid(column=4, row=0, padx=5)
-        if not secondDimension: self.y.config(state='disabled')
+        y = Entry(self, textvariable=self.yVar, width=5)
+        y.grid(column=4, row=0, padx=5)
+        if not secondDimension: y.config(state='disabled')
         Button(self, text="Set", command=self.set).grid(column=5, row=0, padx=15)
 
     def set(self, event=None):
@@ -340,8 +347,18 @@ class DimensionChangeSettings(tk.Frame):
         self.parent.parent.window.updateSize(self.parent.parent.parent)
 
 
-class FrameWithWin(tk.Frame):
-    def __init__(self, parent, window):
+class LineAlignSettings(tk.Frame):
+    def __init__(self, parent, screen):
         tk.Frame.__init__(self, parent)
-        self.parent = parent
-        self.window = window
+        self.screen = screen
+
+        self.var = IntVar()
+        self.var.set(self.screen.align)
+
+        Label(self, text="Alignment:").grid(row=0, column=0)
+        Radiobutton(self, text="Bottom", variable=self.var, value=0, command=self.callback).grid(row=0, column=1, padx=2)
+        Radiobutton(self, text="Top", variable=self.var, value=1, command=self.callback).grid(row=0, column=2, padx=2)
+        Radiobutton(self, text="Center", variable=self.var, value=2, command=self.callback).grid(row=0, column=3, padx=2)
+
+    def callback(self):
+        self.screen.align = self.var.get()

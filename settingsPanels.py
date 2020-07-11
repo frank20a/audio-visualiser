@@ -56,27 +56,31 @@ class LineMenu(tk.Frame):
         # Delay Settings
         cw.DelaySettings(self, self.screen).grid(row=2, column=0, sticky=W)
 
+        # SpectrumLine Direction Settings
+        if str(type(screen)) == "<class 'spectrum.SpectrumLine'>":
+            cw.LineAlignSettings(self, self.screen).grid(row=3, column=0, sticky=W)
+
         # Sensitivity Settings
-        cw.SensitivitySettings(self, self.screen).grid(row=3, column=0, sticky=W)
+        cw.SensitivitySettings(self, self.screen).grid(row=4, column=0, sticky=W)
 
         # Beat Detection Sensitivity Settings
-        cw.BeatSensitivitySettings(self, self.screen).grid(row=4, column=0, sticky=W)
+        cw.BeatSensitivitySettings(self, self.screen).grid(row=5, column=0, sticky=W)
 
         # Beat Detection Threshold Settings
-        cw.BeatThresholdSettings(self, self.screen).grid(row=5, column=0, sticky=W)
+        cw.BeatThresholdSettings(self, self.screen).grid(row=6, column=0, sticky=W)
 
         # Colour Crossfade Sensitivity Settings
-        cw.CrossfadeSpeedSettings(self, self.screen).grid(row=6, column=0, sticky=W)
+        cw.CrossfadeSpeedSettings(self, self.screen).grid(row=7, column=0, sticky=W)
 
         # Changing Frequency Settings
-        cw.BarFreqSettings(self, self.screen).grid(row=7, column=0, sticky=W)
+        cw.BarFreqSettings(self, self.screen).grid(row=8, column=0, sticky=W)
 
         # Dimension Settings
         cw.DimensionChangeSettings(self, self.screen, self.screen.changeSize, title="Dimension", secondDimension=False,
-                                   placeholder=screen.size.inverse()).grid(row=7, column=0, columnspan=2, sticky=W,
+                                   placeholder=screen.size.inverse()).grid(row=9, column=0, columnspan=2, sticky=W,
                                                                            pady=2)
         cw.DimensionChangeSettings(self, self.screen, self.screen.changePixel, title="Pixel Size",
-                                   placeholder=screen.pixel).grid(row=8, column=0, columnspan=2, sticky=W, pady=2)
+                                   placeholder=screen.pixel).grid(row=10, column=0, columnspan=2, sticky=W, pady=2)
         cw.DimensionChangeSettings(self, self.screen, self.screen.changeDist, title="Pixel Distance",
-                                   secondDimension=False, placeholder=screen.pxDist).grid(row=9, column=0, columnspan=2,
+                                   secondDimension=False, placeholder=screen.pxDist).grid(row=11, column=0, columnspan=2,
                                                                                           sticky=W, pady=2)

@@ -16,7 +16,7 @@ class ResponsiveBox(Spectrum):
 
         Spectrum.__init__(self, audioDevice, size=Dimension(2 * size - 1, 2 * size - 1), pixel=Dimension(pixel, pixel),
                           pxDist=pxDist, sens=sens, topDelay=topDelay)
-
+        
         self.barLength = size
         self.beatDetectionBar = 0
 
@@ -51,6 +51,9 @@ class ResponsiveBox(Spectrum):
 
     def cleanup(self):
         print("Closed", self.name)
+        
+    def changeSize(self, size):
+        self.updateSize(size=Dimension(2 * size - 1, 2 * size - 1))
 
 
 class ResponsiveStar(ResponsiveBox):
