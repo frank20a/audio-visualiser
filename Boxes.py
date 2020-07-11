@@ -1,16 +1,16 @@
 import tkinter as tk
 
-import audioInput
-from dimension import Dimension
-import settingsPanels as sp
-from spectrum import Spectrum
+import AudioInput
+from Dimension import Dimension
+import SettingsPanels as sp
+from Spectrums import Spectrum
 from math import exp, sin, pi
 
 
 class ResponsiveBox(Spectrum):
     number = 0
 
-    def __init__(self, audioDevice: audioInput.AudioInput, freq: int = 100, size: int = 15,
+    def __init__(self, audioDevice: AudioInput.AudioInput, freq: int = 100, size: int = 15,
                  pixel: int = 10, pxDist: int = 0, sens: float = 0.03, topDelay: int = 0):
         self.freq = freq
 

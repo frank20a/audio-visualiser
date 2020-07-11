@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import *
-from dimension import Dimension
+from Dimension import Dimension
 
 
 class FrameWithWin(tk.Frame):
@@ -278,15 +278,21 @@ class BarFreqSettings(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.screen = screen
 
-        tk.Label(self, text="Frequency: ").grid(column=0, row=0)
-        self.freq1 = tk.Text(self, width=6, height=1)
-        self.freq1.insert(tk.END, str(self.screen.getFreq()))
-        self.freq1.grid(column=1, row=0)
-        tk.Button(self, text="Set", command=self.changeFreqs).grid(column=4, row=0, padx=10)
-        self.freq1.bind("<KeyRelease>", self.changeFreqs())
+        def limit(*args):
+            t = var.get()
+            if not t.isdigit():
+                t = t[:-1]
+                var.set(t)
+            if len(t) == 0: t = '0'
+            self.screen.addBand(int(t))
 
-    def changeFreqs(self):
-        self.screen.addBand(int(self.freq1.get("1.0", "end-1c")))
+        var = StringVar()
+        var.trace('w', limit)
+
+        tk.Label(self, text="Frequency: ").grid(column=0, row=0)
+        freq1 = tk.Entry(self, textvariable=var, width=6)
+        freq1.insert(tk.END, str(self.screen.getFreq()))
+        freq1.grid(column=1, row=0)
 
 
 class DimensionChangeSettings(tk.Frame):
@@ -301,11 +307,15 @@ class DimensionChangeSettings(tk.Frame):
         def limit(*args):
             temp = self.xVar.get()
             if temp == '': temp = "0"
-            if not temp.isalnum(): self.xVar.set(temp[:-1])
+            if not temp.isdigit():
+                temp = temp[:-1]
+                self.xVar.set(temp)
             if int(temp) > xLim: self.xVar.set(str(xLim))
             temp = self.yVar.get()
             if secondDimension and temp == '': temp = "0"
-            if secondDimension and not temp.isalnum(): self.yVar.set(temp[:-1])
+            if secondDimension and not temp.isdigit():
+                temp = temp[:-1]
+                self.yVar.set(temp)
             if secondDimension and int(temp) > yLim: self.yVar.set(str(yLim))
         self.xVar = StringVar()
         self.yVar = StringVar()

@@ -6,11 +6,13 @@ from tkinter import *
 import json
 from multiprocessing import Process, Queue
 
-import audioInput
-from spectrum import Spectrum, SpectrumLine
-from boxes import ResponsiveStar, ResponsiveBox, ResponsiveHelix
-from videoScreen import Video
-from colors import *
+import AudioInput
+from Spectrums import Spectrum, SpectrumLine
+from Boxes import ResponsiveStar, ResponsiveBox, ResponsiveHelix
+from VideoScreen import Video
+from Sensors import BeatDetectorTCP
+
+from Colors import *
 import Widgets as cw
 from Menus import VisualiserMenubar
 from Dialogs import NewScreenDialog
@@ -217,6 +219,6 @@ class Application(tk.Tk):
 
 
 if __name__ == "__main__":
-    A = audioInput.AudioInput(4096, 96000, 4096 * 3, 1)
-    app = Application(Window(A, screens=(Spectrum(A),), fpsLimiter=1))
+    A = AudioInput.AudioInput(4096, 96000, 4096 * 3, 1)
+    app = Application(Window(A, screens=(BeatDetectorTCP(A),), fpsLimiter=1))
     app.open()

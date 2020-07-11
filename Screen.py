@@ -1,4 +1,4 @@
-from dimension import Dimension
+from Dimension import Dimension
 
 
 class Screen():

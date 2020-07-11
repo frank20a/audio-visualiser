@@ -1,13 +1,11 @@
 import tkinter as tk
 import cv2
 import pickle
-from time import time
 import os
 
-from screen import Screen
-from dimension import Dimension
+from Screen import Screen
+from Dimension import Dimension
 from tkinter.filedialog import askopenfilename
-import settingsPanels as sp
 
 
 class Video(Screen):

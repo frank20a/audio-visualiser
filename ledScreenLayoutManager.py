@@ -7,9 +7,9 @@ import queue
 
 from Menus import LedMenubar, LedToolbar, LedSidebar
 from Dialogs import ChooseConnDialog
-from dimension import Dimension
+from Dimension import Dimension
 from Exceptions import *
-import connections as conn
+import Connections as conn
 
 with open('ledScreenLayoutManager.info', 'r', encoding="utf8") as f:
     info = json.load(f)

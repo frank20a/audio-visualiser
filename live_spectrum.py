@@ -1,8 +1,8 @@
 import numpy as np
-import audioInput
+import AudioInput
 import matplotlib.pyplot as plt
 
-A = audioInput.AudioInput(2048, 48000, 1024, 1)
+A = AudioInput.AudioInput(2048, 48000, 1024, 1)
 
 if __name__ == '__main__':
     # Plotting work

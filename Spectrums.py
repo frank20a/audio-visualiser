@@ -1,18 +1,18 @@
 from random import randint
 import tkinter as tk
 
-from screen import Screen
-import audioInput
-from dimension import Dimension
-import settingsPanels as sp
-from colors import *
+from Screen import Screen
+import AudioInput
+from Dimension import Dimension
+import SettingsPanels as sp
+from Colors import *
 from Exceptions import ConflictingSizes
 
 
 class Spectrum(Screen):
     number = 0
 
-    def __init__(self, audioDevice: audioInput.AudioInput, size: Dimension = Dimension(31, 40), freqs: tuple = (),
+    def __init__(self, audioDevice: AudioInput.AudioInput, size: Dimension = Dimension(31, 40), freqs: tuple = (),
                  pixel: Dimension = Dimension(17, 7), pxDist: int = 5, sens: float = 0.05, topDelay: int = 0):
         self.name = self.__class__.__name__ + ' - ' + str(Spectrum.number)
         Spectrum.number += 1
@@ -90,7 +90,7 @@ class Spectrum(Screen):
             self.g = randint(0, 255)
             self.b = randint(0, 255)
 
-        return [(min(max(self.r, 75), 240), min(max(self.g, 75), 240), min(max(self.b, 75), 240)) for i in
+        return [(min(max(self.r, 75), 255), min(max(self.g, 75), 255), min(max(self.b, 75), 255)) for i in
                 range(self.barLength)]
 
     def beatDetectGradient(self) -> list:
@@ -216,7 +216,7 @@ class Spectrum(Screen):
 class SpectrumLine(Spectrum):
     number = 0
 
-    def __init__(self, audioDevice: audioInput.AudioInput, freq: int = 100, size: int = 40,
+    def __init__(self, audioDevice: AudioInput.AudioInput, freq: int = 100, size: int = 40,
                  pixel: Dimension = Dimension(17, 7), pxDist: int = 5, sens: float = 0.05, topDelay: int = 0,
                  align: int = 0):
 

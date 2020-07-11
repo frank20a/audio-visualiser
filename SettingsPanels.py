@@ -84,3 +84,19 @@ class LineMenu(tk.Frame):
         cw.DimensionChangeSettings(self, self.screen, self.screen.changeDist, title="Pixel Distance",
                                    secondDimension=False, placeholder=screen.pxDist).grid(row=11, column=0, columnspan=2,
                                                                                           sticky=W, pady=2)
+
+
+class BeatDetectorTCPMenu(tk.Frame):
+    def __init__(self, parent, screen):
+        self.screen = screen
+        self.parent = parent
+        tk.Frame.__init__(self, parent)
+
+        tk.Label(self, text=self.screen.name).grid(row=0, column=0)
+
+        # Changing Frequency Settings
+        cw.BarFreqSettings(self, self.screen).grid(row=8, column=0, sticky=W)
+
+        # Dimension Settings
+        cw.DimensionChangeSettings(self, self.screen, self.screen.changePixel, title="Pixel Size",
+                                   placeholder=screen.pixel).grid(row=10, column=0, columnspan=2, sticky=W, pady=2)
