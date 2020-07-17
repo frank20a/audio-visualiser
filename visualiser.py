@@ -142,7 +142,7 @@ class Application(tk.Tk):
         os.environ['SDL_VIDEODRIVER'] = 'windib'
 
         # Settings Panel
-        self.settingSelector = cw.SettingsPanel(self, self.window)
+        self.settingSelector = cw.SettingsPanel(self)
         self.settingSelector.pack(fill=X)
         self.SettingsContainer = cw.FrameWithWin(self, self.window)
         self.SettingsContainer.pack(fill=BOTH, expand=YES)
@@ -153,7 +153,7 @@ class Application(tk.Tk):
         for n, i in enumerate(self.window.screens):
             self.settingsPannels.append(i.createSettings(self.SettingsContainer))
             self.settingsPannels[-1].grid(row=0, column=0)
-        self.settingSelector.selectSettingPanel()
+        self.settingSelector.selectSetting()
 
     def open(self):
         self.window.init()

@@ -12,15 +12,16 @@ class FrameWithWin(tk.Frame):
 
 
 class SettingsPanel(tk.Frame):
-    def __init__(self, parent, window):
+    def __init__(self, parent):
         tk.Frame.__init__(self, parent)
 
-        self.window = window
+        self.parent = parent
+        self.window = parent.window
 
         tk.Label(self, text="Settings for screen: ").pack(side=LEFT)
         self.settingsSelectorCombo = ttk.Combobox(self, values=[i.name for i in self.window.screens],
                                                   width=30)
-        self.settingsSelectorCombo.bind("<<ComboboxSelected>>", self.selectSettingPanel)
+        self.settingsSelectorCombo.bind("<<ComboboxSelected>>", self.selectSetting)
         self.settingsSelectorCombo.current(0)
         self.settingsSelectorCombo.pack(side=LEFT)
 
@@ -30,8 +31,10 @@ class SettingsPanel(tk.Frame):
                                    state=DISABLED)
         self.liveBtn.pack(side=LEFT)
 
-    def selectSettingPanel(self, event=None):
-        self.window.screens[self.settingsSelectorCombo.current()].settings.tkraise()
+    def selectSetting(self, event=None):
+        for i in self.parent.settingsPannels:
+            i.grid_forget()
+        self.parent.settingsPannels[self.settingsSelectorCombo.current()].grid(row=0, column=0)
 
         self.liveBtn['value'] = self.settingsSelectorCombo.get()
 
@@ -40,7 +43,7 @@ class SettingsPanel(tk.Frame):
         self.settingsSelectorCombo['values'] = tuple([i.name for i in self.window.screens])
         if len(self.window.screens) != 0:
             self.settingsSelectorCombo.current(0)
-            self.selectSettingPanel()
+            self.selectSetting()
         else:
             print("No screens")
 
