@@ -92,11 +92,16 @@ class BeatDetectorTCPMenu(tk.Frame):
         self.parent = parent
         tk.Frame.__init__(self, parent)
 
-        tk.Label(self, text=self.screen.name).grid(row=0, column=0)
+        tk.Label(self, text=self.screen.name).grid(row=0, column=0, columnspan=2, pady=5)
 
         # Changing Frequency Settings
-        cw.BarFreqSettings(self, self.screen).grid(row=8, column=0, sticky=W)
+        cw.BarFreqSettings(self, self.screen).grid(row=1, column=0, sticky=W, pady=5)
 
         # Dimension Settings
         cw.DimensionChangeSettings(self, self.screen, self.screen.changePixel, title="Pixel Size",
-                                   placeholder=screen.pixel).grid(row=10, column=0, columnspan=2, sticky=W, pady=2)
+                                   placeholder=screen.pixel).grid(row=2, column=0, columnspan=2, sticky=W, pady=5)
+
+        # Connection Settings
+        tcpSet = cw.TCPSettings(self, self.screen)
+        self.write_console = tcpSet.write_console
+        tcpSet.grid(row=3, column=0, columnspan=2, sticky="nsew", pady=5)

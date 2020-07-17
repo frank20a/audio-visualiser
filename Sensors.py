@@ -1,10 +1,11 @@
 import tkinter as tk
+from time import time
 
 import AudioInput
 from Dimension import Dimension
 import SettingsPanels as sp
 from Spectrums import SpectrumLine
-from math import exp, sin, pi
+from Exceptions import Timeout
 
 
 class BeatDetector(SpectrumLine):
@@ -45,9 +46,45 @@ class BeatDetector(SpectrumLine):
 
 
 class BeatDetectorTCP(BeatDetector):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.socket = None
+        self.msg = "1"
+
     def createSettings(self, parent) -> tk.Frame:
         self.settings = sp.BeatDetectorTCPMenu(parent, self)
         return self.settings
 
     def resolveBeat(self):
-        pass
+        self.send(self.msg)
+
+    def send(self, txt):
+        try:
+            if self.socket:
+                self.socket.send(txt.encode())
+                self.settings.write_console("<- " + txt)
+        except (ConnectionAbortedError, OSError) as e:
+            self.socket.close()
+            self.socket = None
+            self.settings.write_console("== " + str(e))
+
+    def recvall(self):
+        try:
+            if self.socket:
+                res = ''
+                t = time()
+                while res == '' or res[-1] != '\n':
+                    if time() - t > 1.5: raise Timeout()
+                    res += self.socket.recv(512).decode()
+                self.settings.write_console("-> " + res)
+            else:
+                self.socket.close()
+        except Timeout:
+            self.socket = None
+            self.settings.write_console("== Connection Timed Out")
+
+    def cleanup(self):
+        super().cleanup()
+
+        if self.socket: self.socket.close()

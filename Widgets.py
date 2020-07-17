@@ -2,6 +2,8 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import *
 from Dimension import Dimension
+import socket
+from ipaddress import ip_address
 
 
 class FrameWithWin(tk.Frame):
@@ -32,9 +34,9 @@ class SettingsPanel(tk.Frame):
         self.liveBtn.pack(side=LEFT)
 
     def selectSetting(self, event=None):
-        for i in self.parent.settingsPannels:
+        for i in self.parent.settingsPanels:
             i.grid_forget()
-        self.parent.settingsPannels[self.settingsSelectorCombo.current()].grid(row=0, column=0)
+        self.parent.settingsPanels[self.settingsSelectorCombo.current()].grid(row=0, column=0)
 
         self.liveBtn['value'] = self.settingsSelectorCombo.get()
 
@@ -320,6 +322,7 @@ class DimensionChangeSettings(tk.Frame):
                 temp = temp[:-1]
                 self.yVar.set(temp)
             if secondDimension and int(temp) > yLim: self.yVar.set(str(yLim))
+
         self.xVar = StringVar()
         self.yVar = StringVar()
         try:
@@ -331,12 +334,12 @@ class DimensionChangeSettings(tk.Frame):
         self.xVar.trace('w', limit)
         self.yVar.trace('w', limit)
 
-        tk.Label(self, text=title).grid(column=0, row=0)
+        Label(self, text=title).grid(column=0, row=0)
 
-        tk.Label(self, text="X:").grid(column=1, row=0)
+        Label(self, text="X:").grid(column=1, row=0)
         x = Entry(self, textvariable=self.xVar, width=5)
         x.grid(column=2, row=0, padx=5)
-        tk.Label(self, text="Y:").grid(column=3, row=0)
+        Label(self, text="Y:").grid(column=3, row=0)
         y = Entry(self, textvariable=self.yVar, width=5)
         y.grid(column=4, row=0, padx=5)
         if not secondDimension: y.config(state='disabled')
@@ -344,16 +347,22 @@ class DimensionChangeSettings(tk.Frame):
 
     def set(self, event=None):
         if self.second:
-            try: x = int(self.xVar.get())
-            except ValueError: x = 0
+            try:
+                x = int(self.xVar.get())
+            except ValueError:
+                x = 0
 
-            try: y = int(self.yVar.get())
-            except ValueError: y = 0
+            try:
+                y = int(self.yVar.get())
+            except ValueError:
+                y = 0
 
             self.callback(Dimension(x, y))
         else:
-            try: x = int(self.xVar.get())
-            except ValueError: x = 0
+            try:
+                x = int(self.xVar.get())
+            except ValueError:
+                x = 0
 
             self.callback(x)
 
@@ -369,9 +378,65 @@ class LineAlignSettings(tk.Frame):
         self.var.set(self.screen.align)
 
         Label(self, text="Alignment:").grid(row=0, column=0)
-        Radiobutton(self, text="Bottom", variable=self.var, value=0, command=self.callback).grid(row=0, column=1, padx=2)
+        Radiobutton(self, text="Bottom", variable=self.var, value=0, command=self.callback).grid(row=0, column=1,
+                                                                                                 padx=2)
         Radiobutton(self, text="Top", variable=self.var, value=1, command=self.callback).grid(row=0, column=2, padx=2)
-        Radiobutton(self, text="Center", variable=self.var, value=2, command=self.callback).grid(row=0, column=3, padx=2)
+        Radiobutton(self, text="Center", variable=self.var, value=2, command=self.callback).grid(row=0, column=3,
+                                                                                                 padx=2)
 
     def callback(self):
         self.screen.align = self.var.get()
+
+
+class TCPSettings(tk.Frame):
+    def __init__(self, parent, screen):
+
+        tk.Frame.__init__(self, parent, borderwidth=2, relief=GROOVE)
+        self.screen = screen
+
+        Label(self, text="TCP Connection").grid(column=0, columnspan=5, row=0)
+
+        self.ip = StringVar()
+        self.ip.set("127.0.0.1")
+        self.port = StringVar()
+        self.port.set("5555")
+
+        Label(self, text="IP: ").grid(column=0, row=1, sticky=E)
+        Entry(self, textvariable=self.ip, width=16).grid(column=1, row=1, padx=2, sticky=W)
+        Label(self, text="Port: ").grid(column=2, row=1, sticky=E)
+        Entry(self, textvariable=self.port, width=7).grid(column=3, row=1, padx=2, sticky=W)
+        self.btn = Button(self, text="Connect", command=self.conn, bg="red")
+        self.btn.grid(column=4, row=1, sticky=W)
+        self.console = Text(self, width=50, height=11, state=DISABLED)
+        self.console.grid(row=2, column=0, columnspan=5, pady=15, padx=5)
+
+    def conn(self):
+        try:
+            ip = ip_address(self.ip.get()).exploded
+        except ValueError:
+            return self.write_console("== Invalid IPv4/IPv6 address")
+
+        try:
+            port = int(self.port.get())
+        except ValueError:
+            return self.write_console("== Invalid Port")
+
+        try:
+            self.screen.socket = socket.socket()
+            self.screen.socket.connect((ip, port))
+            self.screen.send("Hello")
+            self.screen.recvall()
+        except socket.error as e:
+            self.screen.socket = None
+            return self.write_console("== " + str(e))
+
+    def write_console(self, txt):
+        if txt[-1] != '\n': txt += '\n'
+        self.console.configure(state=NORMAL)
+        self.console.insert(END, txt)
+        self.console.configure(state=DISABLED)
+        self.console.see(END)
+
+        if self.screen.socket:
+            return self.btn.configure(bg="green")
+        self.btn.configure(bg="red")

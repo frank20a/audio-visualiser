@@ -147,12 +147,12 @@ class Application(tk.Tk):
         self.SettingsContainer = cw.FrameWithWin(self, self.window)
         self.SettingsContainer.pack(fill=BOTH, expand=YES)
         self.config(menu=VisualiserMenubar(self))
-        self.settingsPannels = []
+        self.settingsPanels = []
 
         # Create all the Frames for the settings panels
         for n, i in enumerate(self.window.screens):
-            self.settingsPannels.append(i.createSettings(self.SettingsContainer))
-            self.settingsPannels[-1].grid(row=0, column=0)
+            self.settingsPanels.append(i.createSettings(self.SettingsContainer))
+            self.settingsPanels[-1].grid(row=0, column=0)
         self.settingSelector.selectSetting()
 
     def open(self):
@@ -191,8 +191,8 @@ class Application(tk.Tk):
         elif cmd == "Video":
             self.window.screens.append(Video())
 
-        self.settingsPannels.append(self.window.screens[-1].createSettings(self.SettingsContainer))
-        self.settingsPannels[-1].grid(row=0, column=0)
+        self.settingsPanels.append(self.window.screens[-1].createSettings(self.SettingsContainer))
+        self.settingsPanels[-1].grid(row=0, column=0)
 
         self.settingSelector.setCombobox()
 
@@ -204,8 +204,8 @@ class Application(tk.Tk):
     def rmvScreen(self, screen):
         screen.cleanup()
         t = self.window.screens.index(screen)
-        self.settingsPannels[t].destroy()
-        self.settingsPannels.pop(t)
+        self.settingsPanels[t].destroy()
+        self.settingsPanels.pop(t)
         self.window.screens.pop(t)
 
         self.settingSelector.setCombobox()
@@ -220,5 +220,5 @@ class Application(tk.Tk):
 
 if __name__ == "__main__":
     A = AudioInput.AudioInput(4096, 96000, 4096 * 3, 1)
-    app = Application(Window(A, screens=(BeatDetectorTCP(A),), fpsLimiter=1))
+    app = Application(Window(A, screens=(Spectrum(A), BeatDetectorTCP(A),), fpsLimiter=1))
     app.open()
