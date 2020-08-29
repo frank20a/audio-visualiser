@@ -1,3 +1,8 @@
+// Arduino Firmware v0.2 for Serial communication w/ audio-visualiser
+// Audio Visualiser by Frank Fourlas is licensed under CC BY-NC-SA 4.0.
+// To view a copy of this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0
+// This firmware file is included in the license above
+
 #include <FastLED.h>
 
 #define NUM_LEDS 60

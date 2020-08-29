@@ -2,6 +2,7 @@ from serial import Serial
 from Dialogs import SerialConnDialog
 from Exceptions import ConnectionInterrupted
 
+
 class Connection:
     type = "None"
 

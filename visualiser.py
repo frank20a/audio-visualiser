@@ -1,3 +1,6 @@
+# Audio Visualiser by Frank Fourlas is licensed under CC BY-NC-SA 4.0.
+# To view a copy of this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0
+
 import pygame
 from time import time
 import os
@@ -127,7 +130,7 @@ class Application(tk.Tk):
         # Initiating tkinter application
         tk.Tk.__init__(self, *args, **kwargs)
         self.protocol("WM_DELETE_WINDOW", self.quit)
-        self.title(info['programName'])
+        self.title(info['programName'] + ' v' + info['version'] + ' - by ' + info['author'])
         self._running = True
 
         # Define LED Screen Layout module
@@ -141,12 +144,12 @@ class Application(tk.Tk):
         os.environ['SDL_WINDOWID'] = str(self.frame.winfo_id())
         os.environ['SDL_VIDEODRIVER'] = 'windib'
 
-        # Settings Panel
+        # Screen Settings Panel
         self.settingSelector = cw.SettingsPanel(self)
         self.settingSelector.pack(fill=X)
         self.SettingsContainer = cw.FrameWithWin(self, self.window)
         self.SettingsContainer.pack(fill=BOTH, expand=YES)
-        self.config(menu=VisualiserMenubar(self))
+        self.config(menu=VisualiserMenubar(self))               # Needs to be after declaration of self.settingSelector
         self.settingsPanels = []
 
         # Create all the Frames for the settings panels

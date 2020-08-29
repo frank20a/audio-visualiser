@@ -212,6 +212,13 @@ class VisualiserMenubar(Menu):
         filemenu.add_separator()
         filemenu.add_command(label='Quit', command=self.root.quit)
 
+        settingsmenu = Menu(self, tearoff=0)
+        deviceSubmenu = Menu(self, tearoff=0)
+        for device in self.root.window.audioDevice.getDevices():
+            deviceSubmenu.add_command(label=device.get('name'), command=partial(self.root.window.audioDevice.changeDevice,
+                                                                            device['index']))
+        settingsmenu.add_cascade(label="Audio Device", menu=deviceSubmenu)
+
         screensmenu = Menu(self, tearoff=0)
         screensmenu.add_command(label="Add Screen...", command=self.root.addScreen)
         removeScreenSubmenu = Menu(self, tearoff=0)
@@ -224,6 +231,7 @@ class VisualiserMenubar(Menu):
 
         self.add_cascade(label="File", menu=filemenu)
         self.add_cascade(label="Screens", menu=screensmenu)
+        self.add_cascade(label="Settings", menu=settingsmenu)
         self.add_command(label="Open Layout Manager...", command=self.root.openLayoutManager)
         self.add_cascade(label="Help", menu=helpmenu)
 

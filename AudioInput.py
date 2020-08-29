@@ -6,7 +6,7 @@ import struct
 
 
 class AudioInput:
-    def __init__(self, chunk=4096, Fs=48000, Nfft=256, res=4):
+    def __init__(self, chunk=4096, Fs=48000, Nfft=256, res=4, device=3):
         self.chunk = chunk
         self.Fs = Fs
         self.res = res  # 1 is highest
@@ -16,7 +16,7 @@ class AudioInput:
 
         self.p = pyaudio.PyAudio()
         self.stream = self.p.open(format=pyaudio.paFloat32, channels=1, rate=self.Fs, input=True, output=False,
-                                  frames_per_buffer=self.chunk, input_device_index=4)
+                                  frames_per_buffer=self.chunk, input_device_index=device)
 
     # ========= DEPRECATED =========
     # def getSpectralBar(self, i1, i2):
@@ -65,3 +65,16 @@ class AudioInput:
         self.stream.stop_stream()
         self.stream.close()
         self.p.terminate()
+
+    def changeDevice(self, index):
+        self.stream.stop_stream()
+        self.stream.close()
+        self.stream = self.p.open(format=pyaudio.paFloat32, channels=1, rate=self.Fs, input=True, output=False,
+                                  frames_per_buffer=self.chunk, input_device_index=index)
+
+    def getDevices(self):
+        t = []
+        numDevices = self.p.get_host_api_info_by_index(0).get('deviceCount')
+        for i in [self.p.get_device_info_by_host_api_device_index(0, i) for i in range(numDevices)]:
+            if i.get('maxInputChannels') > 0: t.append(i)
+        return t
