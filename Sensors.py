@@ -4,17 +4,17 @@ from time import time
 import AudioInput
 from Dimension import Dimension
 import SettingsPanels as sp
-from Spectrums import SpectrumLine
+from Spectrums import SpectrumBar
 from Exceptions import Timeout
 
 
-class BeatDetector(SpectrumLine):
+class BeatDetector(SpectrumBar):
     number = 0
 
     def __init__(self, audioDevice: AudioInput.AudioInput, freq: int = 80,
                  pixel: int = 120, pxDist: int = 0, delay=3):
-        SpectrumLine.__init__(self, audioDevice, size=1, pixel=Dimension(pixel, pixel),
-                              pxDist=pxDist, sens=0.05, freq=freq)
+        SpectrumBar.__init__(self, audioDevice, size=1, pixel=Dimension(pixel, pixel),
+                             pxDist=pxDist, sens=0.05, freq=freq)
 
         self.beatDetectThreshold = 6
         self.delay = delay

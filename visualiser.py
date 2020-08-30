@@ -10,7 +10,7 @@ import json
 from multiprocessing import Process, Queue
 
 import AudioInput
-from Spectrums import Spectrum, SpectrumLine
+from Spectrums import Spectrum, SpectrumBar, SpectrumLine
 from Boxes import ResponsiveStar, ResponsiveBox, ResponsiveHelix
 from VideoScreen import Video
 from Sensors import BeatDetectorTCP
@@ -183,8 +183,8 @@ class Application(tk.Tk):
         cmd = NewScreenDialog(self).show()
         if cmd == "Spectrum":
             self.window.screens.append(Spectrum(self.window.audioDevice))
-        elif cmd == "SpectrumLine":
-            self.window.screens.append(SpectrumLine(self.window.audioDevice))
+        elif cmd == "SpectrumBar":
+            self.window.screens.append(SpectrumBar(self.window.audioDevice))
         elif cmd == "ResponsiveStar":
             self.window.screens.append(ResponsiveStar(self.window.audioDevice))
         elif cmd == "ResponsiveBox":
@@ -223,5 +223,5 @@ class Application(tk.Tk):
 
 if __name__ == "__main__":
     A = AudioInput.AudioInput(4096, 96000, 4096 * 3, 1)
-    app = Application(Window(A, screens=(Spectrum(A), BeatDetectorTCP(A),), fpsLimiter=1))
+    app = Application(Window(A, screens=(SpectrumLine(A), BeatDetectorTCP(A),), fpsLimiter=1))
     app.open()

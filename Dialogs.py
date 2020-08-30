@@ -11,7 +11,7 @@ class NewScreenDialog(Toplevel):
         self.var = ""
 
         Label(self, text="Select Screen Type").pack(anchor=NW, pady=20, padx=10)
-        self.combo = Combobox(self, values=['Spectrum', 'SpectrumLine', 'ResponsiveStar', 'ResponsiveBox',
+        self.combo = Combobox(self, values=['Spectrum', 'SpectrumBar', 'ResponsiveStar', 'ResponsiveBox',
                                             'ResponsiveHelix', 'Video'])
         self.combo.pack(padx=10, fill=X)
         self.combo.current(0)

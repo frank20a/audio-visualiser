@@ -1,5 +1,6 @@
 from random import randint
 import tkinter as tk
+from math import exp
 
 from Screen import Screen
 import AudioInput
@@ -95,7 +96,7 @@ class Spectrum(Screen):
 
     def beatDetectGradient(self) -> list:
         t = self.beatDetectColour()
-        return self.gradient(t[0], (t[0][2], t[0][0], t[0][1]))
+        return self.exponential_gradient(t[0], (t[0][2], t[0][0], t[0][1]))
 
     def crossfadeColours(self) -> list:
         if self.counter % self.crossfadeSpeed == 0:
@@ -125,7 +126,17 @@ class Spectrum(Screen):
                 res.append(green)
         return res
 
-    def gradient(self, c1, c2) -> list:
+    def exponential_gradient(self, c1, c2, a: float = 2.0) -> list:
+        res = []
+        for i in range(self.barLength):
+            res.append((
+                int(c1[0] + (1-(exp(-a*i/(self.barLength - 1)))) * (c2[0] - c1[0])),
+                int(c1[1] + (1-(exp(-a*i/(self.barLength - 1)))) * (c2[1] - c1[1])),
+                int(c1[2] + (1-(exp(-a*i/(self.barLength - 1)))) * (c2[2] - c1[2]))
+            ))
+        return res
+
+    def linear_gradient(self, c1, c2) -> list:
         res = []
         for i in range(self.barLength):
             res.append((
@@ -136,7 +147,7 @@ class Spectrum(Screen):
         return res
 
     def gradientCrossfadeColours(self) -> list:
-        return self.gradient(self.crossfadeColours()[0], (
+        return self.exponential_gradient(self.crossfadeColours()[0], (
             self.crossfadeColours()[0][1], self.crossfadeColours()[0][0], self.crossfadeColours()[0][2]))
 
     def changePalette(self, x, *args) -> None:
@@ -158,7 +169,7 @@ class Spectrum(Screen):
         elif x == "beat":
             self.palette = self.beatDetectColour
         elif x == "gradient":
-            self.palette = self.gradient(args[0], args[1])
+            self.palette = self.exponential_gradient(args[0], args[1])
         elif x == "cross":
             self.r = 255
             self.g = 75
@@ -213,7 +224,7 @@ class Spectrum(Screen):
         print("Closed", self.name)
 
 
-class SpectrumLine(Spectrum):
+class SpectrumBar(Spectrum):
     number = 0
 
     def __init__(self, audioDevice: AudioInput.AudioInput, freq: int = 100, size: int = 40,
@@ -256,3 +267,32 @@ class SpectrumLine(Spectrum):
 
     def changeSize(self, size) -> None:
         self.updateSize(size=Dimension(1, size))
+
+
+class SpectrumLine(Spectrum):
+    number = 0
+
+    def __init__(self, audioDevice: AudioInput.AudioInput, size: int = 31, freqs: tuple = (),
+                 pixel: Dimension = Dimension(10, 10), pxDist: int = 0, sens: float = 0.05, clipping=40):
+
+        super().__init__(audioDevice, size=Dimension(size, 1), freqs=freqs, pixel=pixel, pxDist=pxDist, sens=sens)
+        self.barLength = clipping
+        # self.changePalette("gradient", (0, 184, 18), (224, 7, 7))
+        self.changePalette("gradient", (255, 255, 0), (255, 0, 0))
+
+    def render(self) -> list:
+        self.calcBars()
+
+        self.counter += 1
+        if callable(self.palette):
+            col = self.palette()
+        else:
+            col = self.palette
+
+        res = []
+
+        for i in self.bar:
+            res.append([col[min(int(i), self.barLength-1)]])
+
+        # if len(res) != self.size.x:raise ConflictingSizes("Number of bars and x-dimension are different")
+        return res
