@@ -150,7 +150,8 @@ class DelaySettings(tk.Frame):
             self.screen.topFrameDrop = 1
 
     def changeDelay(self, event=None):
-        t = int(self.delayValText.get("1.0", "end-1c"))
+        try: t = int(self.delayValText.get("1.0", "end-1c"))
+        except ValueError: t = 1
         if t > 0:
             self.screen.topDelay = t
         else:
@@ -158,7 +159,8 @@ class DelaySettings(tk.Frame):
             self.delayValText.insert(tk.END, "1")
             self.screen.topDelay = 1
 
-        t = int(self.delayDropFrameText.get("1.0", "end-1c"))
+        try: t = int(self.delayDropFrameText.get("1.0", "end-1c"))
+        except ValueError: t = 1
         if t > 0:
             self.screen.topFrameDrop = t
         else:

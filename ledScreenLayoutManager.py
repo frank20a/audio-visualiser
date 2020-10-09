@@ -153,25 +153,51 @@ class LedList:
         pass
 
 
-class LedCanvas(Canvas):
+class LedCanvas(Frame):
     def __init__(self, root):
+        super().__init__(root)
         self.px = 25
         self.root = root
 
-        super().__init__(root, width=self.root.canvasSize.x * self.px, height=self.root.canvasSize.y * self.px,
-                         bg='black')
+        # Create Canvas to attach scrollbars
+        self.container = Canvas(self, borderwidth=0)
+        # Create scrollable Frame
+        self.frame = Frame(self.container)
 
-        self.bind("<Button-1>", self.clickCallback)
+        # Create Scrollbars
+        h = Scrollbar(self, orient=HORIZONTAL, command=self.container.xview)
+        self.container.configure(xscrollcommand=h.set)
+        h.pack(side=BOTTOM, fill=X)
+        v = Scrollbar(self, orient=VERTICAL, command=self.container.yview)
+        self.container.configure(yscrollcommand=v.set)
+        v.pack(side=RIGHT, fill=Y)
+
+        # Pack containers
+        self.container.pack(side='left', fill='both', expand=True)
+        self.container.create_window((0, 0), window=self.frame, anchor="nw", tags="self.frame")
+
+        # Bind Configuration
+        self.frame.bind("<Configure>", self.onFrameConfigure)
+
+        # Create actual content
+        self.canvas = Canvas(self.frame, width=self.root.canvasSize.x * self.px,
+                             height=self.root.canvasSize.y * self.px, bg='black')
+        self.canvas.bind("<Button-1>", self.clickCallback)
+        self.canvas.pack(anchor=NW)
+
+    def onFrameConfigure(self, event):
+        '''Reset the scroll region to encompass the inner frame'''
+        self.container.configure(scrollregion=self.container.bbox("all"))
 
     def begin(self):
-        self.config(width=self.root.canvasSize.x * self.px, height=self.root.canvasSize.y * self.px)
+        self.canvas.config(width=self.root.canvasSize.x * self.px, height=self.root.canvasSize.y * self.px)
 
-        self.delete(ALL)
+        self.canvas.delete(ALL)
 
         for i in range(1, self.root.canvasSize.x):
-            self.create_line(i * self.px, 0, i * self.px, self.root.canvasSize.y * self.px + 2, fill="lightgrey")
+            self.canvas.create_line(i * self.px, 0, i * self.px, self.root.canvasSize.y * self.px + 2, fill="lightgrey")
         for i in range(1, self.root.canvasSize.y):
-            self.create_line(0, i * self.px, self.root.canvasSize.x * self.px + 2, i * self.px, fill="lightgrey")
+            self.canvas.create_line(0, i * self.px, self.root.canvasSize.x * self.px + 2, i * self.px, fill="lightgrey")
 
         if self.root.ledList.fillPos is not None: self.drawRec(self.root.ledList.fillPos, col='darkgrey')
 
@@ -190,14 +216,17 @@ class LedCanvas(Canvas):
         if pos is None: raise NothingToDraw("Provided NoneType position. Can't draw there")
 
         pos = pos[0], self.root.canvasSize.y - pos[1] - 1
-        self.create_rectangle(pos[0] * self.px + 2, pos[1] * self.px + 2, (pos[0] + 1) * self.px - 2,
-                              (pos[1] + 1) * self.px - 2, fill=col)
+        self.canvas.create_rectangle(pos[0] * self.px + (2 if pos[0] != 0 else 3),
+                                     pos[1] * self.px + (2 if pos[1] != 0 else 3),
+                                     (pos[0] + 1) * self.px - (2 if pos[0] != self.root.canvasSize.x - 1 else 1),
+                                     (pos[1] + 1) * self.px - (2 if pos[1] != self.root.canvasSize.y - 1 else 1),
+                                     fill=col)
 
     def drawLine(self, pos1, pos2):
         pos1 = pos1[0], self.root.canvasSize.y - pos1[1] - 1
         pos2 = pos2[0], self.root.canvasSize.y - pos2[1] - 1
-        self.create_line((pos1[0] + 0.5) * self.px, (pos1[1] + 0.5) * self.px, (pos2[0] + 0.5) * self.px,
-                         (pos2[1] + 0.5) * self.px, fill="red", width=2)
+        self.canvas.create_line((pos1[0] + 0.5) * self.px, (pos1[1] + 0.5) * self.px, (pos2[0] + 0.5) * self.px,
+                                (pos2[1] + 0.5) * self.px, fill="red", width=2)
 
     def drawLayout(self):
         class ListEmpty(Exception):
@@ -245,7 +274,9 @@ class App(Tk):
         super().__init__()
 
         # Window settings
-        self.minsize(width=900, height=600)
+        self.minsize(width=1100, height=700)
+        self.maxsize(width=1100, height=700)
+        self.resizable(width=False, height=False)
         self.protocol("WM_DELETE_WINDOW", self.quit)
         # self.state('zoomed')
         self.config(menu=LedMenubar(self))
@@ -258,6 +289,7 @@ class App(Tk):
         # Toolbar settings
         self.toolbar = LedToolbar(self)
         self.sidebar = LedSidebar(self)
+
         # Canvas settings
         self.canvasSize = Dimension(0, 0)
         self.ledCanvas = LedCanvas(self)
@@ -281,7 +313,7 @@ class App(Tk):
 
         if tb: self.toolbar.pack()
         if sb: self.sidebar.pack()
-        self.ledCanvas.pack(anchor=NW)
+        self.ledCanvas.pack(anchor=NW, expand=True, fill='both')
 
     def transmit(self):
         if self.transmitting:
@@ -355,7 +387,8 @@ class App(Tk):
         self.sidebar.buttons[tool]['state'] = DISABLED
 
     def connect(self):
-        self.connection = [conn.Shredder, conn.ConsoleConn, conn.SerialConn, conn.NetworkConn][ChooseConnDialog(self).show()](self)
+        self.connection = [conn.Shredder, conn.ConsoleConn, conn.SerialConn, conn.NetworkConn][
+            ChooseConnDialog(self).show()](self)
 
     # Tk mainloop functions
     def loop(self):

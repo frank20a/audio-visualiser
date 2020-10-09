@@ -20,9 +20,12 @@ class Connection:
         res = []
         iter = self.parent.ledList.root
         while iter is not None:
-            res.append(data[iter.pos[0]][iter.pos[1]])
+            res.append(tuple(map(self.brightness_limit, data[iter.pos[0]][iter.pos[1]])))
             iter = iter.child
         return res
+
+    def brightness_limit(self, n):
+        return min(254, int(n * self.parent.sidebar.brightness.get() / 100))
 
 
 class Shredder(Connection):
@@ -49,8 +52,9 @@ class SerialConn(Connection):
     type = "Serial"
 
     def transmit(self, data):
+        self.ser.write(bytearray([255]))        # Send new frame byte
         for i in self.process(data):
-            self.ser.write(i)
+            self.ser.write(bytearray(i))        # Limit max data byte to 254 to implement new-frame byte
         # if self.ser.read().decode() != '#': raise(ConnectionInterrupted)
 
     def setup(self):

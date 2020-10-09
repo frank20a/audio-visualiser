@@ -6,7 +6,7 @@ import struct
 
 
 class AudioInput:
-    def __init__(self, chunk=4096, Fs=48000, Nfft=256, res=4, device=3):
+    def __init__(self, chunk=4096, Fs=48000, Nfft=256, res=4, device=4):
         self.chunk = chunk
         self.Fs = Fs
         self.res = res  # 1 is highest

@@ -193,6 +193,13 @@ class LedSidebar(Frame):
 
         Separator(self, orient=HORIZONTAL).pack(side=TOP, pady=4, fill=X)
 
+        self.brightness = IntVar()
+        self.brightness.set(100)
+        Label(self, text='Brightness').pack(side=TOP, pady=2, padx=2)
+        Scale(self, from_=100, to=0, length=175, variable=self.brightness).pack(side=TOP, pady=2, padx=2)
+
+        Separator(self, orient=HORIZONTAL).pack(side=TOP, pady=4, fill=X)
+
         self.buttons = {"add": addBtn, "fill": fillBtn, "rem": remBtn, "cut": cutBtn, "move": moveBtn}
 
     def pack(self, *args, **kwargs):

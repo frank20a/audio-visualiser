@@ -54,13 +54,13 @@ class Spectrum(Screen):
         return self.settings
 
     def changeSize(self, size) -> None:
-        self.updateSize(size=size)
+        if size: self.updateSize(size=size)
 
     def changePixel(self, size) -> None:
-        self.updateSize(pixel=size)
+        if size: self.updateSize(pixel=size)
 
     def changeDist(self, size) -> None:
-        self.updateSize(pxDist=size)
+        if size: self.updateSize(pxDist=size)
 
     def calcBars(self) -> None:
         self.findex.sort()
@@ -229,7 +229,7 @@ class SpectrumBar(Spectrum):
 
     def __init__(self, audioDevice: AudioInput.AudioInput, freq: int = 100, size: int = 40,
                  pixel: Dimension = Dimension(17, 7), pxDist: int = 5, sens: float = 0.05, topDelay: int = 0,
-                 align: int = 0):
+                 align: int = 2):
 
         self.align = align  # Align 0:Bottom, 1:Top, 2:Center
         self.freq = freq
