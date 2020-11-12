@@ -51,3 +51,8 @@ class ConnectionInterrupted(Exception):
 class Timeout(Exception):
     """Connection timed out"""
     pass
+
+
+class ConnectionNotACKed(Exception):
+    """Server responded with wrong ACK signal"""
+    pass

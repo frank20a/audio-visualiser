@@ -387,8 +387,11 @@ class App(Tk):
         self.sidebar.buttons[tool]['state'] = DISABLED
 
     def connect(self):
-        self.connection = [conn.Shredder, conn.ConsoleConn, conn.SerialConn, conn.NetworkConn][
-            ChooseConnDialog(self).show()](self)
+        try:
+            self.connection = [conn.Shredder, conn.ConsoleConn, conn.SerialConn, conn.NetworkTCPConn,
+                               conn.NetworkUDPConn][ChooseConnDialog(self).show()](self)
+        except TypeError:
+            pass
 
     # Tk mainloop functions
     def loop(self):
@@ -406,6 +409,7 @@ class App(Tk):
     def quit(self):
         self.RUNNING = False
         super().quit()
+        self.destroy()
 
 
 def run(queue: Queue):

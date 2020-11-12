@@ -7,7 +7,7 @@
 
 #define NUM_LEDS 40
 #define LED_TYPE NEOPIXEL
-#define PIN 6
+#define PIN 16
 
 CRGB leds[NUM_LEDS];
 
@@ -18,7 +18,7 @@ void setup() {
   Serial.begin(500000);
 
   // Handshake
-  Serial.write();
+  Serial.println("Hello World");
 }
 
 void loop() {
@@ -32,7 +32,7 @@ void get_vals(){
   while (Serial.available() < 1);
   if (Serial.read() == 0xFF){
     
-    byte temp[3];
+//    byte temp[3];
     for (int i = 0; i < NUM_LEDS; i++){
       //while (Serial.available() < 3);
       Serial.readBytes((byte*)(&leds[i]), 3);

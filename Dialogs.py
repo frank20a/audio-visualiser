@@ -1,5 +1,7 @@
+from tkinter.messagebox import showerror
 from tkinter import *
 from tkinter.ttk import *
+import ipaddress
 
 
 class NewScreenDialog(Toplevel):
@@ -75,6 +77,59 @@ class SerialConnDialog(Toplevel):
             return ""
 
 
+class NetworkConnDialog(Toplevel):
+    def __init__(self, root):
+        super().__init__(root)
+        self.minsize(width=300, height=10)
+        self.title("Configure Connection")
+        self.root = root
+
+        Label(self, text="Configure TCP Connection").pack(pady=20, padx=20, anchor=W)
+
+        entries = Frame(self)
+        Label(entries, text="IPv4:").pack(side=LEFT, padx=5)
+        self.ip = StringVar()
+        self.ip.set("192.168.1.")
+        self.ip.trace('w', self.check_ip)
+        self.ip_entry = Entry(entries, textvariable=self.ip, width=15)
+        self.ip_entry.pack(side=LEFT, padx=5)
+
+        Label(entries, text='Port:').pack(side=LEFT, padx=5)
+        self.port = StringVar()
+        self.port.set("25566")
+        Entry(entries, textvariable=self.port, width=6).pack(side=LEFT, padx=5)
+        entries.pack(pady=20, padx=20, anchor=W)
+
+        b = Button(self, text="OK", command=self.ok, width=10)
+        b.pack(pady=30, padx=20, anchor=SE)
+
+    def check_ip(self, *args):
+        temp = self.ip.get()
+        # if len(temp) in (3, 7, 11):
+        #     self.ip_entry.insert(END, '.')
+        if len(temp) >= 15: self.ip.set(temp[:15])
+
+    def ok(self):
+        ip = self.ip.get()
+        port = self.port.get()
+        try:
+            ip = ipaddress.ip_address(ip)
+            self.res = (ip, port)
+            self.destroy()
+        except ValueError:
+            showerror("Invalid IP Address", "The IP you provided is not a valid IPv4 address!", parent=self)
+            self.ip.set("")
+
+
+    def show(self):
+        try:
+            self.wm_deiconify()
+            self.wait_window()
+            return self.res
+        except Exception as e:
+            return ""
+
+
 class ChooseConnDialog(Toplevel):
     def __init__(self, root):
         super().__init__(root)
@@ -82,7 +137,7 @@ class ChooseConnDialog(Toplevel):
         self.title("Select Connection")
 
         Label(self, text="Select Communication Method").pack(anchor=NW, pady=20, padx=10)
-        self.combo = Combobox(self, values=["Shredder", "Console", "Serial", "TCP"])
+        self.combo = Combobox(self, values=["Shredder", "Console", "Serial", "Network-TCP", "Network-UDP"])
         self.combo.pack(padx=10, fill=X)
         self.combo.current(0)
 

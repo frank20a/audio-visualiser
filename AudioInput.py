@@ -2,11 +2,10 @@ from math import cos, pi, floor
 import pyaudio
 import numpy as np
 from scipy.fftpack import fft
-import struct
 
 
 class AudioInput:
-    def __init__(self, chunk=4096, Fs=48000, Nfft=256, res=4, device=4):
+    def __init__(self, chunk=4096, Fs=48000, Nfft=256, res=4, device=3):
         self.chunk = chunk
         self.Fs = Fs
         self.res = res  # 1 is highest

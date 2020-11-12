@@ -1,7 +1,8 @@
 from serial import Serial
-from Dialogs import SerialConnDialog
-from Exceptions import ConnectionInterrupted
-
+import socket
+from Dialogs import SerialConnDialog, NetworkConnDialog
+from Exceptions import ConnectionInterrupted, ConnectionNotACKed
+from time import sleep
 
 class Connection:
     type = "None"
@@ -68,9 +69,73 @@ class SerialConn(Connection):
         except Exception as e: print(e)
 
 
-class NetworkConn(Connection):
-    type = "Network"
+class NetworkTCPConn(Connection):
+    type = "Network-TCP"
+
+    def transmit(self, data):
+        try:
+            self.socket.send(bytearray([255]))              # Make new frame handshake
+            for i in self.process(data):
+                self.socket.sendall(bytearray(i))       # Transmit data
+
+        except (ConnectionAbortedError, OSError) as e:
+            self.socket.close()
+            self.socket = None
+            print(e)
+            self.parent.connect()
+        except ConnectionNotACKed:
+            print("Missed frame")
+
+    def setup(self):
+        try:
+            self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            resp = NetworkConnDialog(self.parent).show()
+            self.socket.connect((str(resp[0]), int(resp[1])))
+
+            # Get connection ACK
+            ack = self.socket.recv(1024).decode()
+            if ack != self.socket.getsockname()[0] + " ACK": raise ConnectionNotACKed(ack)
+            else: print("Connected")
+        except TimeoutError:
+            print("Connection Timed Out")
+        except ConnectionRefusedError:
+            print("Connection was actively refused (Blocked port or server not running")
+        except ConnectionNotACKed as e:
+            print("Server responded with wrong ACK signal", end=' ')
+            print(e)
+            self.socket.close()
+
+
+class NetworkUDPConn(Connection):
+    type = "Network-UDP"
+
+    def transmit(self, data):
+        try:
+            self.socket.sendto(bytearray([i for sub in self.process(data) for i in sub]), self.server)
+        except (ConnectionAbortedError, OSError) as e:
+            self.socket.close()
+            self.socket = None
+            print(e)
+            self.parent.connect()
+
+    def setup(self):
+        try:
+            self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            resp = NetworkConnDialog(self.parent).show()
+            self.server = (str(resp[0]), int(resp[1]))
+
+            # Get connection ACK
+            # ack = self.socket.recvfrom(1024)
+            # if ack[0] != "ACK" or ack[1] != self.server[0]: raise ConnectionNotACKed
+        except TimeoutError:
+            print("Connection Timed Out")
+        except ConnectionRefusedError:
+            print("Connection was actively refused (Blocked port or server not running")
+        except ConnectionNotACKed as e:
+            print("Server responded with wrong ACK signal", end=' ')
+            print(e)
+            self.socket.close()
 
 
 if __name__ == "__main__":
-    A = SerialConn(None)
+    A = NetworkTCPConn()

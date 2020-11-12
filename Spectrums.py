@@ -6,7 +6,7 @@ from Screen import Screen
 import AudioInput
 from Dimension import Dimension
 import SettingsPanels as sp
-from Colors import *
+from ColourEngine import *
 from Exceptions import ConflictingSizes
 
 
@@ -119,11 +119,11 @@ class Spectrum(Screen):
         res = []
         for j in range(self.barLength):
             if j > self.barLength * 0.9:
-                res.append(red)
+                res.append(RED)
             elif j > self.barLength * 0.7:
-                res.append(yellow)
+                res.append(YELLOW)
             else:
-                res.append(green)
+                res.append(GREEN)
         return res
 
     def exponential_gradient(self, c1, c2, a: float = 2.0) -> list:
@@ -197,9 +197,11 @@ class Spectrum(Screen):
         res = []
 
         for n, i in enumerate(self.bar):
-            t = [black for i in range(self.barLength)]
+            t = [BLACK for i in range(self.barLength)]
 
-            for j in range(min(int(i) + 1, self.barLength)): t[j] = col[j]
+
+            for j in range(min(int(i) + 1, self.barLength)):
+                t[j] = col[j]
 
             if self.topDelay > 0:
 
@@ -229,7 +231,7 @@ class SpectrumBar(Spectrum):
 
     def __init__(self, audioDevice: AudioInput.AudioInput, freq: int = 100, size: int = 40,
                  pixel: Dimension = Dimension(17, 7), pxDist: int = 5, sens: float = 0.05, topDelay: int = 0,
-                 align: int = 2):
+                 align: int = 1):
 
         self.align = align  # Align 0:Bottom, 1:Top, 2:Center
         self.freq = freq

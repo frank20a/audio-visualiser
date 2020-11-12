@@ -14,13 +14,11 @@ from Spectrums import Spectrum, SpectrumBar, SpectrumLine
 from Boxes import ResponsiveStar, ResponsiveBox, ResponsiveHelix
 from VideoScreen import Video
 from Sensors import BeatDetectorTCP
-
-from Colors import *
+from ColourEngine import *
 import Widgets as cw
 from Menus import VisualiserMenubar
 from Dialogs import NewScreenDialog
 import ledScreenLayoutManager
-from Exceptions import *
 
 with open('visualiser.info', 'r', encoding="utf8") as f:
     info = json.load(f)
@@ -73,7 +71,7 @@ class Window:
             pygame.display.update()
 
     def render(self, live: str):
-        self.screen.fill(black)
+        self.screen.fill(BLACK)
         liveData = None
 
         tempX = 0
@@ -93,7 +91,7 @@ class Window:
 
             if i.name == live: liveData = display
 
-        self.screen.blit(pygame.font.SysFont('Arial Bold', 30).render('FPS: %5.2f' % self.fps, False, red), (10, 10))
+        self.screen.blit(pygame.font.SysFont('Arial Bold', 30).render('FPS: %5.2f' % self.fps, False, RED), (10, 10))
 
         return liveData
 
@@ -177,6 +175,7 @@ class Application(tk.Tk):
         if self.managerProc.is_alive(): self.managerProc.terminate()
         self.window._running = False
         self._running = False
+        super().quit()
         self.destroy()
 
     def addScreen(self):

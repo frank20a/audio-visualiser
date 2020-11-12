@@ -57,7 +57,7 @@ class LineMenu(tk.Frame):
         cw.DelaySettings(self, self.screen).grid(row=2, column=0, sticky=W)
 
         # SpectrumBar Direction Settings
-        if str(type(screen)) == "<class 'spectrum.SpectrumBar'>":
+        if str(type(screen)) == "<class 'Spectrums.SpectrumBar'>":
             cw.LineAlignSettings(self, self.screen).grid(row=3, column=0, sticky=W)
 
         # Sensitivity Settings
